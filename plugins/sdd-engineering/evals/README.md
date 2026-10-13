@@ -16,6 +16,8 @@ node plugins/sdd-engineering/evals/run.mjs --case <id> --model sonnet
 EVAL_SHOW_OUTPUT=1 node plugins/sdd-engineering/evals/run.mjs --case <id>   # print the model's output and tool results
 ```
 
+The child process gets an explicit tool allowlist (no `bypassPermissions`), no web tools, Bash limited to `git`, `ls`, `cat`, `grep`, `touch` and `wc`, and only the environment `claude` needs (PATH, HOME, `ANTHROPIC_*`, `CLAUDE_*`, proxy and certificate variables), so unrelated tokens are not inherited. Run it on a machine you trust anyway: it executes a model.
+
 Running the cases calls the model and costs tokens, so CI only validates the file. Run the cases before every release and record the result in the release notes.
 
 ## What the evals do not prove

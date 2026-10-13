@@ -6,7 +6,7 @@
 //   node evals/run.mjs --case <id> [--model sonnet]   (EVAL_SHOW_OUTPUT=1 prints the model's final text)
 //
 // Each case gets a fresh git repository built from its `fixture`; the five marketplace plugins are
-// loaded with --plugin-dir. Results are graded on deterministic signals only: files, tool calls and
+// loaded with --plugin-dir. The model runs with an explicit tool allowlist and a minimal environment. Results are graded on deterministic signals only: files, tool calls and
 // tool results (agent reports and hook messages are English; the main session's reply follows the
 // user's language, so prefer tool results over free text).
 import { spawnSync } from 'node:child_process';
@@ -18,6 +18,16 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PLUGINS = resolve(HERE, '..', '..');
 const PLUGIN_NAMES = ['engineering-paved-path', 'research-tools', 'architecture-review', 'quality-review', 'sdd-engineering'];
+const ALLOWED_TOOLS = ['Read', 'Grep', 'Glob', 'Write', 'Edit', 'Agent', 'Skill',
+  'Bash(git:*)', 'Bash(ls:*)', 'Bash(cat:*)', 'Bash(grep:*)', 'Bash(touch:*)', 'Bash(wc:*)'];
+
+// The child gets only what `claude` needs to run and authenticate, so unrelated tokens in the parent
+// environment (GitHub, cloud, package registry) are not inherited by a model-driven process.
+function childEnv() {
+  const keep = /^(PATH|HOME|USER|LOGNAME|SHELL|TERM|LANG|LC_.*|TMPDIR|TZ|ANTHROPIC_.*|CLAUDE_.*|XDG_.*|SSL_CERT_.*|NODE_EXTRA_CA_CERTS|HTTPS?_PROXY|NO_PROXY|https?_proxy|no_proxy)$/;
+  return Object.fromEntries(Object.entries(process.env).filter(([k]) => keep.test(k)));
+}
+
 const CHECKS = ['outputMatches', 'outputNotMatches', 'toolResultMatches', 'toolResultNotMatches', 'fileExists', 'fileAbsent', 'noNewFilesUnder', 'noNewCommits', 'toolUsed', 'toolNotUsed'];
 
 const cases = JSON.parse(readFileSync(join(HERE, 'cases.json'), 'utf8')).cases;
@@ -128,10 +138,16 @@ function runCase(c, model) {
     git(repo, 'commit', '-q', '-m', 'fixture');
     const base = git(repo, 'rev-parse', 'HEAD').out;
 
-    const args = ['-p', c.prompt, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'bypassPermissions',
+    // No bypassPermissions: only the tools below are allowed, web tools are denied, and Bash is limited
+    // to harmless read/inspect commands plus `touch` (the guard cases try it on purpose). The agents'
+    // own guard hooks still apply.
+    const args = ['-p', c.prompt, '--output-format', 'stream-json', '--verbose',
+      '--permission-mode', 'default',
+      '--allowedTools', ALLOWED_TOOLS.join(','),
+      '--disallowedTools', 'WebFetch,WebSearch',
       '--max-turns', String(c.maxTurns ?? 10), ...PLUGIN_NAMES.flatMap((n) => ['--plugin-dir', join(PLUGINS, n)])];
     if (model) args.push('--model', model);
-    const proc = spawnSync('claude', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const proc = spawnSync('claude', args, { cwd: repo, env: childEnv(), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     const run = parseStream(proc.stdout ?? '');
     if (proc.status !== 0 && !run.text) run.text = (proc.stderr ?? '').slice(0, 2000);
     if (process.env.EVAL_SHOW_OUTPUT) console.log(`  --- output ---\n${run.text}\n  --- tool results ---\n${run.results}\n  --------------`);
