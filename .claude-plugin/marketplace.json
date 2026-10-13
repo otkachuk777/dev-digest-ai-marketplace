@@ -20,6 +20,11 @@
       "name": "architecture-review",
       "source": "./plugins/architecture-review",
       "description": "Read-only architecture reviewer that discovers the repository's own architecture docs and checks, runs them first, then judges boundaries and placement."
+    },
+    {
+      "name": "quality-review",
+      "source": "./plugins/quality-review",
+      "description": "Code review, security review, test writing and documentation agents, each confined by hooks to what it may touch."
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "name": "quality-review",
+  "displayName": "Quality Review",
+  "version": "1.0.0",
+  "description": "Code review, security review, test writing and documentation agents, each confined by hooks to what it may touch.",
+  "author": {
+    "name": "AI Engineering"
+  },
+  "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["code-review", "security", "testing", "documentation", "agents"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" }
+  ]
+}
