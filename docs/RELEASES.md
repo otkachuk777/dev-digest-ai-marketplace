@@ -42,6 +42,8 @@ node scripts/build-stable.mjs --pin sdd-engineering@1.0.0    # pin one plugin to
 node scripts/build-stable.mjs --pin sdd-engineering@1.0.0 --publish   # commit it to the "stable" branch and push
 ```
 
+The catalog site refreshes via `gh workflow run pages.yml` or the daily schedule (a push to `stable` does not trigger it).
+
 Every plugin is listed, so dependencies resolve inside the stable marketplace. Each entry is a `git-subdir` source pinned to the release tag and its commit SHA.
 
 To roll back a project:

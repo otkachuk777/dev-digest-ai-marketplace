@@ -23,7 +23,8 @@ Start a new session or run `/reload-plugins` afterwards.
 .claude-plugin/marketplace.json   marketplace catalog (name, owner, plugin entries)
 plugins/<name>/                   one directory per plugin, each with .claude-plugin/plugin.json
 docs/                             guidelines, security and release documentation
-.github/workflows/                CI (validation)
+.github/workflows/                CI (validation) and the Pages deploy
+site/                             catalog site (search UI and build)
 ```
 
 ## Contributing

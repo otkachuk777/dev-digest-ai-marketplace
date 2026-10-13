@@ -18,6 +18,16 @@ npm run build      # reads ../ (main working tree) and origin/stable, writes dis
 npm run serve      # serves dist/ under the Pages base path
 ```
 
+## Refreshing after a stable update
+
+A push to the `stable` branch does not trigger the Pages workflow (that branch has no workflow file). Refresh the site with:
+
+```bash
+gh workflow run pages.yml
+```
+
+A daily scheduled run does the same, so stable changes appear within a day.
+
 ## How it works
 
 - `build/` produces `dist/catalog.json`, `search-latest.json`, `search-stable.json`, `bodies/`, `feed.xml`, `meta.json`.

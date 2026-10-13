@@ -14,7 +14,7 @@ A static site on GitHub Pages that lets users of the marketplace find and instal
 Success criteria:
 - A query returns relevant cards in under 100 ms on the client, with no network call after page load.
 - Every card has a working copy-paste install snippet for the selected channel (latest / stable).
-- The catalog rebuilds and redeploys automatically on every merge to `main` or `stable`, with no manual step.
+- The catalog rebuilds and redeploys automatically on every merge to `main`, and picks up `stable` changes within a day, with no manual step.
 - The site works with zero backend, zero secrets, zero third-party runtime services.
 
 ## 2. Constraints and decisions
@@ -245,20 +245,19 @@ on the detail page). No user data is sent anywhere except opening the GitHub URL
 
 ## 8. Workflow: `.github/workflows/pages.yml`
 
-- Triggers: `push` to `main` and `stable`, `workflow_dispatch`.
+- Triggers: `push` to `main`, a daily `schedule`, `workflow_dispatch` (a push to `stable` cannot trigger it, see section 16 item 2).
 - Permissions: `contents: read`, `pages: write`, `id-token: write`.
 - Concurrency group `pages`, `cancel-in-progress: false`.
 - Steps: checkout `main` → `_latest`, checkout `stable` → `_stable` (continue-on-error) →
   setup-node (pinned LTS) → `npm ci` in `site/` → `npm test` → `node site/build/index.mjs` →
   `actions/configure-pages` → `actions/upload-pages-artifact` (path `site/dist`) → `actions/deploy-pages`.
-- Both `main` and `stable` pushes rebuild the whole site, so the two channels never go stale
-  relative to each other.
+- Every run rebuilds the whole site, so the two channels never go stale relative to each other beyond one day.
 - Actions pinned by full commit SHA.
 - One-time manual setup (documented in README): repo Settings → Pages → Source = "GitHub Actions".
 
 ## 9. Data flow summary
 
-1. Merge to `main` or `stable`.
+1. Merge to `main` (or publish `stable` and wait for the daily run or dispatch the workflow).
 2. Workflow builds `catalog.json`, `search-index.json`, `feed.xml`, `meta.json`.
 3. Browser loads HTML, then fetches `catalog.json` and `search-index.json` once, caches in memory.
 4. Typing runs MiniSearch locally; filters and channel are applied in memory; URL updated.
@@ -325,7 +324,7 @@ Analytics, ratings, comments, accounts, any server component, LLM-based or embed
 Found after reading `docs/RELEASES.md`, `scripts/build-stable.mjs` and the Claude Design canvas.
 
 1. **Stable source.** The `stable` branch contains only `.claude-plugin/marketplace.json` with `git-subdir` entries pinned to `ref` (tag `<plugin>--v<version>`) and `sha`. The build therefore reads stable plugin files with `git archive <sha> <path>`, not from a checkout of `stable`. Affects 6.1 and 6.2.
-2. **Checkout.** The Pages workflow always builds from `main` (`fetch-depth: 0`, tags included) and reads `origin/stable` via git. Pushes to `stable` also trigger a rebuild.
+2. **Checkout.** The Pages workflow always builds from `main` (`fetch-depth: 0`, tags included) and reads `origin/stable` via git. A push to `stable` does NOT trigger the workflow (that branch has no workflow file); refresh comes from a daily schedule plus `workflow_dispatch` (`gh workflow run pages.yml`).
 3. **Feed.** Releases come from tags `<plugin>--v<version>` (tag date, summary from the CHANGELOG section at that tag, fallback tag subject), not from `git log` on `plugin.json`. Affects 6.6.
 4. **Data layout.** `catalog.json` holds metadata only, per channel. Markdown bodies are separate files `bodies/<channel>/<id with / as __>.md`. There are two search indexes, `search-latest.json` and `search-stable.json`. Affects 6.3, 6.5, 6.7.
 5. **Validation.** Failures in `latest` fail the build. Failures in `stable` are recorded and shown in the security panel, because pinned tags are immutable and cannot be fixed. Affects 11.

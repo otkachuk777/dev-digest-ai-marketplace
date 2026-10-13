@@ -2,7 +2,9 @@ name: pages
 
 on:
   push:
-    branches: [main, stable]
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *'
   pull_request:
     paths:
       - 'site/**'
@@ -24,7 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Always build from main (pushes to "stable" must not check out a branch that only holds marketplace.json).
+          # Always build from main: the "stable" branch holds only marketplace.json and no site files or workflow,
+          # so a push to it cannot trigger this workflow. origin/stable is read via git (fetch-depth 0).
+          # After publishing stable, refresh with `gh workflow run pages.yml` or wait for the daily schedule.
           ref: ${{ github.event_name == 'pull_request' && github.sha || 'main' }}
           fetch-depth: 0
 
