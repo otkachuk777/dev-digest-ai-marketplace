@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "repo", "channels", "artifacts", "releases"],
+  "properties": {
+    "schema": { "const": 1 },
+    "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latest", "stable"],
+      "properties": {
+        "latest": { "$ref": "#/definitions/channel" },
+        "stable": { "anyOf": [{ "$ref": "#/definitions/channel" }, { "type": "null" }] }
+      }
+    },
+    "artifacts": { "type": "array", "items": { "$ref": "#/definitions/artifact" } },
+    "releases": { "type": "array", "items": { "$ref": "#/definitions/release" } }
+  },
+  "definitions": {
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["marketplace", "ref"],
+      "properties": { "marketplace": { "type": "string", "minLength": 1 }, "ref": { "type": "string", "minLength": 1 } }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plugin", "version", "tag", "date", "summary"],
+      "properties": {
+        "plugin": { "type": "string" }, "version": { "type": "string" }, "tag": { "type": "string" },
+        "date": { "type": "string" }, "summary": { "type": "string" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "plugin", "channels"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9._-]+/(plugin|skill|agent|command|hook|mcp)/[A-Za-z0-9._-]+$" },
+        "type": { "enum": ["plugin", "skill", "agent", "command", "hook", "mcp"] },
+        "name": { "type": "string", "minLength": 1 },
+        "plugin": { "type": "string", "minLength": 1 },
+        "channels": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": { "latest": { "$ref": "#/definitions/record" }, "stable": { "$ref": "#/definitions/record" } }
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "description", "tags", "tokens", "declared", "path", "ref", "body", "validation", "lastChange", "indexed"],
+      "properties": {
+        "version": { "type": ["string", "null"] },
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "tokens": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "object", "additionalProperties": false, "required": ["always", "onInvoke"], "properties": { "always": { "type": "integer", "minimum": 0 }, "onInvoke": { "type": "integer", "minimum": 0 } } }
+          ]
+        },
+        "declared": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tools", "hooks", "mcp"],
+          "properties": {
+            "tools": { "type": "array", "items": { "type": "string" } },
+            "hooks": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["event", "matcher", "command"], "properties": { "event": { "type": "string" }, "matcher": { "type": "string" }, "command": { "type": "string" } } } },
+            "mcp": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["name", "command"], "properties": { "name": { "type": "string" }, "command": { "type": "string" } } } }
+          }
+        },
+        "path": { "type": "string" },
+        "ref": { "type": "string" },
+        "body": { "type": ["string", "null"] },
+        "validation": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "object", "additionalProperties": false, "required": ["passed", "total", "failures"], "properties": { "passed": { "type": "integer" }, "total": { "type": "integer" }, "failures": { "type": "array", "items": { "type": "string" } } } }
+          ]
+        },
+        "lastChange": { "type": ["string", "null"] },
+        "indexed": { "type": "boolean" }
+      }
+    }
+  }
+}
