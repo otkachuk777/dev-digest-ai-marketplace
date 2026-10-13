@@ -1,0 +1,19 @@
+name: Report a problem
+description: Something is wrong with an artifact or with the catalog site.
+title: "Problem: "
+labels: ["bug"]
+body:
+  - type: input
+    id: artifact
+    attributes:
+      label: Artifact
+      description: Id, version and channel (prefilled from the catalog).
+    validations:
+      required: false
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what you saw.
+    validations:
+      required: true

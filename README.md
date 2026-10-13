@@ -29,3 +29,9 @@ docs/                             guidelines, security and release documentation
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) and [docs/SECURITY.md](docs/SECURITY.md).
+
+## Catalog
+
+Search the marketplace in the browser: https://otkachuk777.github.io/dev-digest-ai-marketplace/
+
+The site lives in [`site/`](site/README.md), is built from `main` (latest) and from the release tags pinned in the `stable` branch, and is deployed by `.github/workflows/pages.yml`.
