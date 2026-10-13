@@ -312,14 +312,25 @@ Using `node:test`, run in CI before deploy.
 
 ## 14. Open items to verify during implementation
 
-1. Exact syntax to add a marketplace pinned to a branch (`owner/repo#stable` vs git URL with ref).
-   If unsupported, the stable marketplace is added by its git URL plus the documented ref option.
-   Verify with `claude plugin marketplace add` before finalizing `snippets.js`.
-2. Remote (non-local) `source` plugins: v1 lists them as unindexed cards; confirm that is acceptable
-   once real plugins exist.
-3. Whether `claude plugin validate` can run in the Pages workflow; if so, its result replaces the
-   homegrown validation status in the security panel.
+1. Remote (non-local) `source` plugins: v1 lists them as unindexed cards; confirm that is acceptable once real plugins exist.
+
+Resolved during planning: the stable marketplace is added with `claude plugin marketplace add otkachuk777/dev-digest-ai-marketplace#stable` (documented in `docs/RELEASES.md`); `claude plugin validate` already runs in `.github/workflows/validate.yml`, so the Pages build only runs its own six checks.
 
 ## 15. Out of scope (reminder)
 
 Analytics, ratings, comments, accounts, any server component, LLM-based or embedding search.
+
+## 16. Amendments from the planning phase (2026-10-14)
+
+Found after reading `docs/RELEASES.md`, `scripts/build-stable.mjs` and the Claude Design canvas.
+
+1. **Stable source.** The `stable` branch contains only `.claude-plugin/marketplace.json` with `git-subdir` entries pinned to `ref` (tag `<plugin>--v<version>`) and `sha`. The build therefore reads stable plugin files with `git archive <sha> <path>`, not from a checkout of `stable`. Affects 6.1 and 6.2.
+2. **Checkout.** The Pages workflow always builds from `main` (`fetch-depth: 0`, tags included) and reads `origin/stable` via git. Pushes to `stable` also trigger a rebuild.
+3. **Feed.** Releases come from tags `<plugin>--v<version>` (tag date, summary from the CHANGELOG section at that tag, fallback tag subject), not from `git log` on `plugin.json`. Affects 6.6.
+4. **Data layout.** `catalog.json` holds metadata only, per channel. Markdown bodies are separate files `bodies/<channel>/<id with / as __>.md`. There are two search indexes, `search-latest.json` and `search-stable.json`. Affects 6.3, 6.5, 6.7.
+5. **Validation.** Failures in `latest` fail the build. Failures in `stable` are recorded and shown in the security panel, because pinned tags are immutable and cannot be fixed. Affects 11.
+6. **Fonts.** The design uses Geist; it is self-hosted (`@fontsource`) because CSP forbids external fonts. All styling is in `style.css`; no inline `style` attributes.
+7. **Type chips.** Chips are explicit multi-select filters, none pressed by default. The "Understood as … boost for type" row shows the parsed query. Affects 7.1.
+8. **Not available in stable.** Shown on the detail page when an id exists only in `latest` (for example from a shared link). The stable search list contains stable artifacts only.
+9. **Workflow actions** use major-version tags (`@v4`), matching `validate.yml`, not commit SHAs. Affects 8.
+10. **Isolation.** All site code, tests, fixtures and tooling live in `site/`; only the workflow and issue templates live in `.github/`.

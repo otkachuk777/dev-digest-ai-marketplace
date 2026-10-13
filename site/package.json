@@ -1,0 +1,21 @@
+{
+  "name": "marketplace-catalog-site",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "build": "node build/index.mjs --repo-root .. --stable-ref origin/stable --out dist",
+    "dev": "node dev/serve-fixture.mjs",
+    "serve": "node dev/serve.mjs dist 4173"
+  },
+  "devDependencies": {
+    "@fontsource/geist": "^5.1.0",
+    "@fontsource/geist-mono": "^5.1.0",
+    "ajv": "^8.17.1",
+    "dompurify": "^3.2.0",
+    "jsdom": "^25.0.0",
+    "marked": "^14.1.0",
+    "minisearch": "^7.1.0"
+  }
+}
