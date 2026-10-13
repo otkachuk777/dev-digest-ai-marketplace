@@ -18,6 +18,14 @@ test('facets collect sorted unique tags and plugins', () => {
   assert.deepEqual(facets(viewItems(catalog, 'latest')), { tags: ['a', 'b'], plugins: ['p'] });
 });
 
+test('viewItems tolerates records without tags or tokens', () => {
+  const c = { artifacts: [{ id: 'p/skill/z', type: 'skill', name: 'z', plugin: 'p', channels: { latest: { version: '1.0.0', description: 'd' } } }] };
+  const [item] = viewItems(c, 'latest');
+  assert.deepEqual(item.tags, []);
+  assert.equal(item.tokens, null);
+  assert.deepEqual(facets([item]), { tags: [], plugins: ['p'] });
+});
+
 test('labels', () => {
   assert.equal(displayName({ type: 'command', name: 'y' }), '/y');
   assert.equal(displayName({ type: 'skill', name: 'x' }), 'x');

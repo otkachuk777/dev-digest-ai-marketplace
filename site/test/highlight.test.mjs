@@ -8,6 +8,10 @@ test('highlight wraps matches case-insensitively and escapes the rest', () => {
   assert.equal(highlight('Code <Review>', ['review']), 'Code &lt;<mark>Review</mark>&gt;');
 });
 
+test('highlight prefers the longest overlapping term', () => {
+  assert.equal(highlight('review', ['rev', 'review']), '<mark>review</mark>');
+});
+
 test('highlight survives regex metacharacters and empty terms', () => {
   assert.equal(highlight('a+b (c)', ['+', '(']), 'a<mark>+</mark>b <mark>(</mark>c)');
   assert.equal(highlight('plain', []), 'plain');

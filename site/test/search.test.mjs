@@ -37,8 +37,32 @@ test('filters apply after search: type, tag and plugin', () => {
   assert.ok(search({ ms, items, query: '', filters: { plugin: 'q' } }).hits.every((h) => h.item.plugin === 'q'));
 });
 
+const hostile = ['c++ (test', '[', '\\', '<img onerror=x>', '*', '(((', '-', '_', '--'];
+
 test('hostile queries do not throw', () => {
-  for (const q of ['c++ (test', '[', '\\', '<img onerror=x>', '*', '(((']) {
+  for (const q of hostile) {
     assert.doesNotThrow(() => search({ ms, items, query: q, filters: {} }));
   }
+});
+
+test('raw hostile strings do not throw MiniSearch directly', () => {
+  for (const q of hostile) assert.doesNotThrow(() => ms.search(q), q);
+});
+
+test('symbol-only queries behave like an empty query', () => {
+  for (const q of ['-', '_', '--']) {
+    assert.equal(search({ ms, items, query: q, filters: {} }).hits.length, items.length, q);
+  }
+});
+
+test('type boost decides ties between otherwise identical artifacts', () => {
+  const twin = (type) => ({ id: `p/${type}/twin`, type, name: 'twin', plugin: 'p', description: 'Review helper.', tags: 'review', body: '' });
+  const tdocs = [twin('agent'), twin('skill')];
+  const titems = tdocs.map((d) => ({ ...d, tags: d.tags.split(' '), version: '1.0.0', tokens: null }));
+  const tms = new MiniSearch(searchOptions);
+  tms.addAll(tdocs);
+  const boosted = search({ ms: tms, items: titems, query: 'skill review', filters: {} });
+  assert.equal(boosted.hits[0].item.type, 'skill');
+  const plain = search({ ms: tms, items: titems, query: 'review', filters: {} });
+  assert.equal(plain.hits[0].score, plain.hits[1].score);
 });

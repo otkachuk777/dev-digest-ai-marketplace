@@ -3,7 +3,7 @@ export function viewItems(catalog, channel) {
     .filter((a) => a.channels[channel])
     .map((a) => {
       const c = a.channels[channel];
-      return { id: a.id, type: a.type, name: a.name, plugin: a.plugin, version: c.version, description: c.description, tags: c.tags, tokens: c.tokens };
+      return { id: a.id, type: a.type, name: a.name, plugin: a.plugin, version: c.version, description: c.description, tags: c.tags ?? [], tokens: c.tokens ?? null };
     });
 }
 

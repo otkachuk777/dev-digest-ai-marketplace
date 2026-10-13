@@ -20,7 +20,7 @@ export function parseQuery(raw) {
     }
     if (STOP.has(w)) continue;
     const t = w.replace(/^\/+/, '');
-    if (t) terms.push(t);
+    if (t && /[\p{L}\p{N}]/u.test(t)) terms.push(t);
   }
   return { terms, text: terms.join(' '), typeBoost };
 }
