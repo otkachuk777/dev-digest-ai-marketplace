@@ -128,6 +128,7 @@ pre.sn .c{color:var(--code-dim)}
 .kv dt{color:var(--muted)}.kv dd{margin:0;overflow-wrap:anywhere}
 .risk{border:1px solid var(--hook-fg);border-radius:10px;padding:12px;font:400 13px 'Geist Mono',monospace;overflow-wrap:anywhere;margin-bottom:8px}
 .risk.mcp{border-color:var(--mcp-fg)}.risk .k{color:var(--muted)}
+.panel p.mono{overflow-wrap:anywhere}
 .failures{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--err-fg)}
 .md h1,.md h2,.md h3{margin:24px 0 8px;font-size:17px}.md>:first-child{margin-top:0}
 .md p{margin:0 0 12px}.md ul,.md ol{margin:0 0 12px;padding-left:20px}

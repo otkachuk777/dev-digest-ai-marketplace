@@ -43,3 +43,35 @@ export function newsHtml(releases, siteBase) {
     return `<li><span class="mono muted small">${esc(String(r.date).slice(0, 10))}</span><span><strong class="mono">${esc(`${r.plugin} ${r.version}`)}</strong> <span class="muted">${esc(r.summary)}</span></span><a class="small tap" href="${esc(siteBase)}${href}">Open</a></li>`;
   }).join('');
 }
+
+export const sourceUrl = (repo, record) => `https://github.com/${repo}/blob/${record.ref}/${record.path}`;
+
+export function installHtml({ steps, plugin, ownerNote }) {
+  const pre = steps.map((s) => `<span class="c">${esc(s.comment)}</span>\n${esc(s.command)}`).join('\n');
+  const note = ownerNote ? `<p class="hint">Artifacts are not installed on their own. This is the snippet for the owning plugin, <span class="mono">${esc(plugin)}</span>.</p>` : '';
+  return `<h2>Install</h2>${note}<pre class="sn" id="snippet" tabindex="0">${pre}</pre><div class="copyrow"><button class="btn btn-p" type="button" id="copy">Copy snippet</button><span id="copy-status" class="ok" role="status" aria-live="polite"></span></div>`;
+}
+
+export function tokensHtml(tokens) {
+  if (!tokens) return '<h2>Token cost</h2><p class="hint">Token cost is not available for this artifact type.</p><p class="foot">Estimate = characters / 4. A real tokenizer may differ by 10-20%.</p>';
+  const n = (v) => `≈${v.toLocaleString('en-US')}`;
+  return `<h2>Token cost</h2><div class="stats"><div class="stat"><div class="n">${n(tokens.always)}</div><div class="d">always in context<br>name + description</div></div><div class="stat"><div class="n">${n(tokens.onInvoke)}</div><div class="d">on invoke<br>markdown body</div></div></div><p class="foot">Estimate = characters / 4. A real tokenizer may differ by 10-20%.</p>`;
+}
+
+export function securityHtml(record) {
+  const d = record.declared;
+  const v = record.validation;
+  const validation = !record.indexed || !v
+    ? 'Not checked (remote source)'
+    : v.failures.length === 0
+      ? `<span class="ok">Passed</span> · ${v.passed} of ${v.total} rules`
+      : `<span class="bad">Failed</span> · ${v.passed} of ${v.total} rules`;
+  const failures = v && v.failures.length ? `<ul class="failures">${v.failures.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : '';
+  const tools = d.tools.length ? esc(d.tools.join(', ')) : 'None declared';
+  const hooks = d.hooks.map((h) => `<div class="risk"><div class="k">${esc(h.event)}${h.matcher ? ` · matcher ${esc(h.matcher)}` : ''}</div><div>${esc(h.command)}</div></div>`).join('');
+  const mcp = d.mcp.map((m) => `<div class="risk mcp"><div class="k">server: ${esc(m.name)}</div><div>${esc(m.command)}</div></div>`).join('');
+  return `<h2 id="sec">Security</h2><p class="warn">Declared in the plugin files, not independently audited.</p>
+<dl class="kv"><dt>Tools</dt><dd class="mono small">${tools}</dd><dt>Validation</dt><dd>${validation}${failures}</dd><dt>Last change</dt><dd class="mono small">${esc(record.lastChange ?? 'unknown')}</dd><dt>Version</dt><dd class="mono small">${esc(record.version ?? 'n/a')} · ${esc(record.ref)}</dd></dl>
+${hooks ? `<h3><span class="b b-hook">hook</span> Runs commands on your machine</h3>${hooks}` : ''}
+${mcp ? `<h3><span class="b b-mcp">mcp</span> Runs commands on your machine</h3>${mcp}` : ''}`;
+}
