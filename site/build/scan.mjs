@@ -53,7 +53,7 @@ function readMcp(dir, pluginPath, problems) {
   const servers = json.mcpServers ?? json;
   return Object.entries(servers)
     .filter(([, v]) => v && typeof v === 'object')
-    .map(([name, v]) => ({ name, command: v.command ? [v.command, ...(v.args ?? [])].join(' ') : String(v.url ?? '') }));
+    .map(([name, v]) => ({ name, command: v.command ? [v.command, ...(Array.isArray(v.args) ? v.args : [])].join(' ') : String(v.url ?? '') }));
 }
 
 function make({ type, slug, name, description, tags, body, path, tools = [], tokens }) {
@@ -85,11 +85,12 @@ export function scanPlugin({ dir, pluginPath, entryName }) {
     if (!manifest.name || !/^\d+\.\d+\.\d+/.test(String(version))) {
       problems.push({ rule: 'manifest', file: manifestPath, message: 'plugin.json needs "name" and a SemVer "version"' });
     }
-    if (manifest.name !== entryName) {
+    if (manifest.name && manifest.name !== entryName) {
       problems.push({ rule: 'entry-name', file: manifestPath, message: `marketplace entry "${entryName}" differs from plugin.json name "${manifest.name}"` });
     }
   }
-  const keywords = uniq(manifest?.keywords ?? []);
+  const rawKeywords = manifest?.keywords;
+  const keywords = uniq(Array.isArray(rawKeywords) ? rawKeywords : typeof rawKeywords === 'string' ? splitList(rawKeywords) : []);
   const readmeFile = join(dir, 'README.md');
   const changelogFile = join(dir, 'CHANGELOG.md');
   const readme = existsSync(readmeFile) ? read(readmeFile) : '';

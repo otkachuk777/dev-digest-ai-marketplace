@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { createFixtureRepo } from '../dev/make-fixture-repo.mjs';
 import { scanPlugin, splitList } from '../build/scan.mjs';
 
@@ -37,4 +39,29 @@ test('scanPlugin finds every artifact type in demo-plugin 1.1.0', () => {
   } finally {
     cleanup();
   }
+});
+
+function withPlugin(manifest, fn) {
+  const dir = mkdtempSync(join(tmpdir(), 'scan-malformed-'));
+  try {
+    mkdirSync(join(dir, '.claude-plugin'), { recursive: true });
+    writeFileSync(join(dir, '.claude-plugin', 'plugin.json'), JSON.stringify(manifest));
+    fn(scanPlugin({ dir, pluginPath: 'plugins/p', entryName: 'p' }));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('scanPlugin accepts string keywords', () => {
+  withPlugin({ name: 'p', version: '1.0.0', keywords: 'Review, git' }, (scan) => {
+    assert.deepEqual(scan.keywords, ['review', 'git']);
+    assert.deepEqual(scan.artifacts[0].tags, ['review', 'git']);
+  });
+});
+
+test('scanPlugin reports a missing name once, without a misleading entry-name problem', () => {
+  withPlugin({ version: '1.0.0' }, (scan) => {
+    assert.equal(scan.problems.filter((p) => p.rule === 'manifest').length, 1);
+    assert.equal(scan.problems.filter((p) => p.rule === 'entry-name').length, 0);
+  });
 });
