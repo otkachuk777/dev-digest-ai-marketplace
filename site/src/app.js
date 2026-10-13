@@ -9,12 +9,13 @@ import { installSteps } from './snippets.js';
 import { requestSkillUrl } from './issues.js';
 import { copyText } from './clipboard.js';
 import { esc } from './highlight.js';
-import { createGuard } from './request-guard.js';
+import { createGuard, shouldIgnoreChannelClick } from './request-guard.js';
 
 const $ = (id) => document.getElementById(id);
 const state = { q: '', types: [], tag: '', plugin: '', channel: 'latest' };
 const indexCache = new Map();
 const channelGuard = createGuard();
+let pendingChannel = null;
 let catalog;
 let meta;
 let items = [];
@@ -126,13 +127,16 @@ function bindOnce() {
   $('plugin').addEventListener('change', (e) => { if (!catalog) return; state.plugin = e.target.value; render(); syncUrl(true); });
   $('channel').addEventListener('click', async (e) => {
     const b = e.target.closest('button[data-channel]');
-    if (!b || !catalog || b.dataset.channel === state.channel) return;
+    if (!b || !catalog || shouldIgnoreChannelClick(b.dataset.channel, pendingChannel, state.channel)) return;
     const channel = b.dataset.channel;
+    pendingChannel = channel;
     try {
       if (!(await selectChannel(channel))) return;
     } catch (err) {
       say(`Could not switch to ${channel}: ${err.message}`);
       return;
+    } finally {
+      if (pendingChannel === channel) pendingChannel = null;
     }
     storeChannel(channel);
     render(); syncUrl(true);

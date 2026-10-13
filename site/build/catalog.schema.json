@@ -39,7 +39,7 @@
       "additionalProperties": false,
       "required": ["id", "type", "name", "plugin", "channels"],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9._-]+/(plugin|skill|agent|command|hook|mcp)/[A-Za-z0-9._-]+$" },
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+/(plugin|skill|agent|command|hook|mcp)/[A-Za-z0-9._-]+$" },
         "type": { "enum": ["plugin", "skill", "agent", "command", "hook", "mcp"] },
         "name": { "type": "string", "minLength": 1 },
         "plugin": { "type": "string", "minLength": 1 },

@@ -13,6 +13,13 @@ test('defaults write an empty string and unknown types are dropped', () => {
   assert.equal(readState('').channel, null);
 });
 
+test('readState keeps an explicit latest channel; writeState still omits it', () => {
+  assert.equal(readState('?channel=latest').channel, 'latest');
+  assert.equal(readState('?channel=stable').channel, 'stable');
+  assert.equal(readState('?channel=other').channel, null);
+  assert.equal(writeState({ q: '', types: [], tag: '', plugin: '', channel: 'latest' }), '');
+});
+
 test('resolveChannel falls back to latest when stable is unavailable', () => {
   assert.equal(resolveChannel({ fromUrl: 'stable', stored: null, hasStable: false }), 'latest');
   assert.equal(resolveChannel({ fromUrl: 'stable', stored: null, hasStable: true }), 'stable');

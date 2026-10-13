@@ -7,7 +7,7 @@ export function readState(search) {
     types: (p.get('type') ?? '').split(',').filter((t) => TYPES.includes(t)),
     tag: p.get('tag') ?? '',
     plugin: p.get('plugin') ?? '',
-    channel: p.get('channel') === 'stable' ? 'stable' : null,
+    channel: ['latest', 'stable'].includes(p.get('channel')) ? p.get('channel') : null,
   };
 }
 

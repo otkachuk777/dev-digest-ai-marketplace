@@ -43,7 +43,7 @@ export function serve({ dir, port }) {
     }
   });
   return new Promise((ok) => server.listen(port, '127.0.0.1', () => {
-    console.log(`Serving ${root} at http://localhost:${port}${BASE}`);
+    console.log(`Serving ${root} at http://127.0.0.1:${port}${BASE}`);
     ok(server);
   }));
 }

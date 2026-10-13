@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, relative, isAbsolute, sep } from 'node:path';
 import { parseFrontmatter } from './lib/frontmatter.mjs';
 import { estimateTokens } from './lib/tokens.mjs';
 
@@ -34,10 +34,32 @@ function readJson(file, shownPath, problems) {
   }
 }
 
-function readHooks(dir, pluginPath, problems) {
-  const json = readJson(join(dir, 'hooks', 'hooks.json'), `${pluginPath}/hooks/hooks.json`, problems);
+const isObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
+
+export function slugify(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'x';
+}
+
+// Resolves a manifest-declared path inside the plugin dir. Paths that escape it are ignored with a problem.
+function readManifestJson(dir, pluginPath, rel, problems) {
+  const shown = `${pluginPath}/${String(rel).replace(/^\.\//, '')}`;
+  const abs = resolve(dir, String(rel));
+  const out = relative(resolve(dir), abs);
+  if (out === '' || out === '..' || out.startsWith(`..${sep}`) || isAbsolute(out)) {
+    problems.push({ rule: 'json', file: shown, message: `path "${rel}" is outside the plugin directory and was ignored` });
+    return null;
+  }
+  if (!existsSync(abs)) {
+    problems.push({ rule: 'json', file: shown, message: `file "${rel}" referenced in plugin.json does not exist` });
+    return null;
+  }
+  return readJson(abs, shown, problems);
+}
+
+function hooksFrom(json) {
+  const events = isObject(json?.hooks) ? json.hooks : json;
   const out = [];
-  for (const [event, groups] of Object.entries(json?.hooks ?? {})) {
+  for (const [event, groups] of Object.entries(isObject(events) ? events : {})) {
     for (const g of Array.isArray(groups) ? groups : []) {
       for (const h of Array.isArray(g?.hooks) ? g.hooks : []) {
         if (h?.command) out.push({ event, matcher: g.matcher ?? '', command: String(h.command) });
@@ -47,13 +69,41 @@ function readHooks(dir, pluginPath, problems) {
   return out;
 }
 
-function readMcp(dir, pluginPath, problems) {
-  const json = readJson(join(dir, '.mcp.json'), `${pluginPath}/.mcp.json`, problems);
-  if (!json) return [];
-  const servers = json.mcpServers ?? json;
-  return Object.entries(servers)
-    .filter(([, v]) => v && typeof v === 'object')
+function mcpFrom(json) {
+  const servers = isObject(json?.mcpServers) ? json.mcpServers : json;
+  return Object.entries(isObject(servers) ? servers : {})
+    .filter(([, v]) => isObject(v))
     .map(([name, v]) => ({ name, command: v.command ? [v.command, ...(Array.isArray(v.args) ? v.args : [])].join(' ') : String(v.url ?? '') }));
+}
+
+function dedupe(list, keyOf) {
+  const seen = new Set();
+  return list.filter((x) => {
+    const k = keyOf(x);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function readHooks(dir, pluginPath, manifest, problems) {
+  const found = hooksFrom(readJson(join(dir, 'hooks', 'hooks.json'), `${pluginPath}/hooks/hooks.json`, problems));
+  const decl = manifest?.hooks;
+  for (const src of Array.isArray(decl) ? decl : [decl]) {
+    if (typeof src === 'string') found.push(...hooksFrom(readManifestJson(dir, pluginPath, src, problems)));
+    else if (isObject(src)) found.push(...hooksFrom(src));
+  }
+  return dedupe(found, (h) => JSON.stringify([h.event, h.matcher, h.command]));
+}
+
+function readMcp(dir, pluginPath, manifest, problems) {
+  const found = mcpFrom(readJson(join(dir, '.mcp.json'), `${pluginPath}/.mcp.json`, problems));
+  const decl = manifest?.mcpServers;
+  for (const src of Array.isArray(decl) ? decl : [decl]) {
+    if (typeof src === 'string') found.push(...mcpFrom(readManifestJson(dir, pluginPath, src, problems)));
+    else if (isObject(src)) found.push(...mcpFrom(src));
+  }
+  return dedupe(found, (s) => s.name);
 }
 
 function make({ type, slug, name, description, tags, body, path, tools = [], tokens }) {
@@ -114,7 +164,7 @@ export function scanPlugin({ dir, pluginPath, entryName }) {
       const skillName = String(data.name || d.name);
       const description = String(data.description ?? '');
       artifacts.push(make({
-        type: 'skill', slug: d.name, name: skillName, description,
+        type: 'skill', slug: slugify(d.name), name: skillName, description,
         tags: uniq([...keywords, ...splitList(data.tags)]), body, path: shown,
         tools: splitList(data['allowed-tools']), tokens: fullTokens(skillName, description.trim(), body),
       }));
@@ -125,11 +175,11 @@ export function scanPlugin({ dir, pluginPath, entryName }) {
     const folderPath = join(dir, folder);
     if (!existsSync(folderPath)) continue;
     for (const f of readdirSync(folderPath).filter((n) => n.endsWith('.md')).sort()) {
-      const slug = f.slice(0, -3);
+      const slug = slugify(f.slice(0, -3));
       const shown = `${pluginPath}/${folder}/${f}`;
       const { data, body } = parseFrontmatter(read(join(folderPath, f)));
       if (!String(data.description ?? '').trim()) problems.push({ rule: 'description', file: shown, message: 'description is missing' });
-      const name = String(data.name || slug);
+      const name = String(data.name || f.slice(0, -3));
       const description = String(data.description ?? '');
       artifacts.push(make({
         type, slug, name, description, tags: uniq([...keywords, ...splitList(data.tags)]), body, path: shown,
@@ -138,21 +188,37 @@ export function scanPlugin({ dir, pluginPath, entryName }) {
     }
   }
 
-  const hooks = readHooks(dir, pluginPath, problems);
+  const hooks = readHooks(dir, pluginPath, manifest, problems);
   hooks.forEach((h, i) => {
     artifacts.push(make({
-      type: 'hook', slug: `${h.event.toLowerCase()}-${i + 1}`, name: h.matcher ? `${h.event}:${h.matcher}` : h.event,
+      type: 'hook', slug: slugify(`${h.event}-${i + 1}`), name: h.matcher ? `${h.event}:${h.matcher}` : h.event,
       description: `Runs on ${h.event}${h.matcher ? ` when the tool matches ${h.matcher}` : ''}: ${h.command}`,
       tags: keywords, body: '', path: `${pluginPath}/hooks/hooks.json`, tokens: null,
     }));
   });
 
-  const mcp = readMcp(dir, pluginPath, problems);
+  const mcp = readMcp(dir, pluginPath, manifest, problems);
   for (const s of mcp) {
     artifacts.push(make({
-      type: 'mcp', slug: s.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-'), name: s.name,
+      type: 'mcp', slug: slugify(s.name), name: s.name,
       description: `MCP server started with: ${s.command}`, tags: keywords, body: '', path: `${pluginPath}/.mcp.json`, tokens: null,
     }));
+  }
+
+  // Same type + slug twice in one plugin: suffix -2, -3, ... and report instead of throwing.
+  const taken = new Map();
+  for (const a of artifacts.slice(1)) {
+    const base = a.slug;
+    let key = `${a.type}/${base}`;
+    if (taken.has(key)) {
+      const other = taken.get(key);
+      let n = 2;
+      while (taken.has(`${a.type}/${base}-${n}`)) n++;
+      a.slug = `${base}-${n}`;
+      key = `${a.type}/${a.slug}`;
+      problems.push({ rule: 'name', file: a.path, message: `slug "${base}" collides with ${other}` });
+    }
+    taken.set(key, a.path);
   }
 
   return { name, version, description: manifest?.description ?? '', keywords, readme, changelog, path: pluginPath, artifacts, hooks, mcp, problems };
