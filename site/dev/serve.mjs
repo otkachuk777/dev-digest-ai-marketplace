@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { extname, join, normalize, resolve } from 'node:path';
+import { extname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const BASE = '/dev-digest-ai-marketplace/';
@@ -19,10 +19,17 @@ export function serve({ dir, port }) {
       res.writeHead(302, { location: BASE });
       return res.end();
     }
-    let rel = decodeURIComponent(url.pathname.slice(BASE.length)) || 'index.html';
+    let rel;
+    try {
+      rel = decodeURIComponent(url.pathname.slice(BASE.length)) || 'index.html';
+    } catch {
+      res.writeHead(400, { 'content-type': 'text/plain' });
+      return res.end('bad request');
+    }
     if (rel.endsWith('/')) rel += 'index.html';
     const file = normalize(join(root, rel));
-    if (!file.startsWith(root)) {
+    const fromRoot = relative(root, file);
+    if (fromRoot === '..' || fromRoot.startsWith(`..${sep}`) || isAbsolute(fromRoot)) {
       res.writeHead(403);
       return res.end('forbidden');
     }
@@ -35,7 +42,7 @@ export function serve({ dir, port }) {
       res.end('not found');
     }
   });
-  return new Promise((ok) => server.listen(port, () => {
+  return new Promise((ok) => server.listen(port, '127.0.0.1', () => {
     console.log(`Serving ${root} at http://localhost:${port}${BASE}`);
     ok(server);
   }));

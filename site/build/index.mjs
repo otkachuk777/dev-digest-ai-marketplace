@@ -1,6 +1,6 @@
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { git } from './lib/git.mjs';
@@ -32,7 +32,26 @@ function write(out, file, text) {
   writeFileSync(p, text);
 }
 
+function isInside(child, parent) {
+  const r = relative(parent, child);
+  return r === '' || (r !== '..' && !r.startsWith(`..${sep}`) && !isAbsolute(r));
+}
+
+function assertSafeOut(out, repoRoot) {
+  const target = resolve(out);
+  const src = resolve(SRC_DIR);
+  const reason =
+    target === parse(target).root ? 'it is the filesystem root'
+    : isInside(process.cwd(), target) ? 'it is the current directory or an ancestor of it'
+    : isInside(resolve(repoRoot), target) ? 'it is the repo root or an ancestor of it'
+    : isInside(src, target) ? 'it is the site source directory or an ancestor of it'
+    : isInside(target, src) ? 'it is inside the site source directory'
+    : null;
+  if (reason) throw new Error(`Refusing to use --out ${target}: ${reason}.`);
+}
+
 export function build({ repoRoot, stableRef = 'origin/stable', repo, out, builtAt = new Date().toISOString() }) {
+  assertSafeOut(out, repoRoot);
   const work = mkdtempSync(join(tmpdir(), 'catalog-build-'));
   try {
     const latest = loadLatest({ repoRoot });

@@ -48,6 +48,18 @@ test('build fails when the latest channel does not validate', () => {
   } finally { cleanup(); rmSync(out, { recursive: true, force: true }); }
 });
 
+test('build refuses dangerous --out directories', () => {
+  const { root, cleanup } = createFixtureRepo();
+  try {
+    assert.throws(() => build({ repoRoot: root, stableRef: 'none', repo: FIXTURE_REPO, out: root }), /Refusing to use --out/);
+    assert.ok(existsSync(join(root, 'plugins/demo-plugin/CHANGELOG.md')), 'repo files must survive');
+    assert.throws(() => build({ repoRoot: root, stableRef: 'none', repo: FIXTURE_REPO, out: process.cwd() }), /Refusing to use --out/);
+    const inSrc = join(process.cwd(), 'src', 'nested-out');
+    assert.throws(() => build({ repoRoot: root, stableRef: 'none', repo: FIXTURE_REPO, out: inSrc }), /Refusing to use --out/);
+    assert.throws(() => build({ repoRoot: root, stableRef: 'none', repo: FIXTURE_REPO, out: '/' }), /Refusing to use --out/);
+  } finally { cleanup(); }
+});
+
 function writeBroken(root) {
   rmSync(join(root, 'plugins/demo-plugin/CHANGELOG.md'));
 }
