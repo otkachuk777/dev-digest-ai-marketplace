@@ -33,7 +33,7 @@ claude plugin install engineering-paved-path@dev-digest-ai-marketplace --scope p
 
 ## Third-party content
 
-Five skills come from MIT-licensed upstream repositories. See [NOTICE](NOTICE).
+The plugin is MIT licensed (see the repository `LICENSE`). Five skills come from MIT-licensed upstream repositories with their own copyright holders. See [NOTICE](NOTICE).
 
 ## Architecture skills and your repository
 

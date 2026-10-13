@@ -29,3 +29,7 @@ docs/                             guidelines, security and release documentation
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) and [docs/SECURITY.md](docs/SECURITY.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE). Plugins that bundle third-party material list it in their `NOTICE` file.

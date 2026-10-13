@@ -7,5 +7,15 @@
     "name": "AI Engineering"
   },
   "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
-  "keywords": ["react", "fastify", "drizzle", "postgres", "zod", "typescript", "architecture", "security"]
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "fastify",
+    "drizzle",
+    "postgres",
+    "zod",
+    "typescript",
+    "architecture",
+    "security"
+  ]
 }
