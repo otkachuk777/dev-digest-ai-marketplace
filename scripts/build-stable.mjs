@@ -19,7 +19,14 @@ import { git, loadMarketplace, parseArgs, parseVersion, releasedVersions } from 
 export function toHttpsUrl(remote) {
   const ssh = /^git@([^:]+):(.+?)(?:\.git)?$/.exec(remote);
   if (ssh) return `https://${ssh[1]}/${ssh[2]}.git`;
-  if (/^https?:\/\//.test(remote) && !remote.endsWith('.git')) return `${remote}.git`;
+  if (/^https?:\/\//.test(remote)) {
+    // The result is published in a public catalog, so never carry credentials (https://user:token@host/...).
+    const u = new URL(remote);
+    u.username = '';
+    u.password = '';
+    const clean = u.toString();
+    return clean.endsWith('.git') ? clean : `${clean}.git`;
+  }
   return remote;
 }
 

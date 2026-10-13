@@ -68,6 +68,12 @@ test('toHttpsUrl normalises remotes', () => {
   assert.equal(toHttpsUrl('https://github.com/o/r'), 'https://github.com/o/r.git');
 });
 
+test('toHttpsUrl strips credentials from the remote URL', () => {
+  const url = toHttpsUrl('https://user:ghp_SECRET@github.com/o/r.git');
+  assert.equal(url, 'https://github.com/o/r.git');
+  assert.ok(!/SECRET|user/.test(toHttpsUrl('https://x-access-token:ghp_SECRET@github.com/o/r')));
+});
+
 test('a consistent marketplace passes', () => {
   const { root } = fixture();
   const { errors } = checkRepo(root);
