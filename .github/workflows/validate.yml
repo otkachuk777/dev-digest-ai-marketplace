@@ -32,6 +32,15 @@ jobs:
       - name: Test release scripts
         run: node --test "scripts/test/*.test.mjs"
 
+      - name: Test plugin scripts
+        run: |
+          for t in plugins/*/scripts/*.test.sh; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            bash "$t"
+            echo "::endgroup::"
+          done
+
       - name: Validate each plugin
         run: |
           for dir in plugins/*/; do
