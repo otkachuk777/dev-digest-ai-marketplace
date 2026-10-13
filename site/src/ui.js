@@ -15,7 +15,7 @@ export function cardHtml(item, { terms, channel }) {
 <div><h2 class="card-title"><a href="${href}">${highlight(displayName(item), terms)}</a></h2><div class="small muted">in <span class="mono">${esc(item.plugin)}</span></div></div>
 <p class="clamp">${highlight(item.description, terms)}</p>
 <div class="tags">${tags}</div>
-<div class="card-foot"><span class="mono muted small grow">${esc(tokenLabel(item.tokens))}</span><a class="small" href="${href}">Details</a><button class="btn" type="button" data-copy="${esc(item.plugin)}" aria-label="Copy install snippet for ${esc(item.plugin)}">${COPY_ICON} Copy install</button></div>
+<div class="card-foot"><span class="mono muted small grow">${esc(tokenLabel(item.tokens))}</span><a class="small tap" href="${href}">Details</a><button class="btn" type="button" data-copy="${esc(item.plugin)}" aria-label="Copy install snippet for ${esc(item.plugin)}">${COPY_ICON} Copy install</button></div>
 </article>`;
 }
 
@@ -40,6 +40,6 @@ export function newsHtml(releases, siteBase) {
   if (!releases.length) return '<li class="muted">No releases yet.</li>';
   return releases.map((r) => {
     const href = esc(detailHref(`${r.plugin}/plugin/${r.plugin}`, 'latest'));
-    return `<li><span class="mono muted small">${esc(String(r.date).slice(0, 10))}</span><span><strong class="mono">${esc(`${r.plugin} ${r.version}`)}</strong> <span class="muted">${esc(r.summary)}</span></span><a class="small" href="${siteBase}${href}">Open</a></li>`;
+    return `<li><span class="mono muted small">${esc(String(r.date).slice(0, 10))}</span><span><strong class="mono">${esc(`${r.plugin} ${r.version}`)}</strong> <span class="muted">${esc(r.summary)}</span></span><a class="small tap" href="${esc(siteBase)}${href}">Open</a></li>`;
   }).join('');
 }
