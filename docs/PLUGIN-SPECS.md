@@ -54,7 +54,7 @@ Required files: `NOTICE` with the copyright line and licence text of every MIT u
 |---|---|
 | agent `researcher` | none (1 DevDigest reference) |
 | agent `brainstorm` | remove DevDigest examples; keep the "not `superpowers:brainstorming`" note generic |
-| script `readonly-bash-guard.sh` | none; hook path becomes `${CLAUDE_PLUGIN_ROOT}/scripts/readonly-bash-guard.sh` |
+| script `readonly-bash-guard.sh` + `hooks/hooks.json` | scoped by `agent_type`; hook declared at plugin level (see cross-cutting rules) |
 
 ## architecture-review
 
@@ -93,7 +93,7 @@ Not taken: `architecture-reviewer-lite` (same role, duplicate).
 ## Cross-cutting rules
 
 - **Path guard.** DevDigest `path-guard.sh <tests|docs|plans|specs>` hard-codes directories. The shipped version takes the allowed path patterns as arguments, with documented defaults, and is covered by a test.
-- **Hook paths.** Hooks reference `${CLAUDE_PLUGIN_ROOT}/scripts/...`, never `.claude/agents/scripts/...`.
+- **Hooks live at plugin level.** Claude Code ignores `hooks:` in the frontmatter of plugin agents, so guards are declared in the plugin's `hooks/hooks.json` as `PreToolUse` hooks, referenced as `${CLAUDE_PLUGIN_ROOT}/scripts/...`, never `.claude/agents/scripts/...`. A guard fires for every matching tool call, so it must act only when the hook input's `agent_type` is one of the agents it protects and do nothing for the main session. Guards need a test that covers that scoping.
 - **No DevDigest leftovers.** No `devdigest`, `reviewer-core`, `@devdigest/*`, absolute paths, `CLAUDE.md` or `INSIGHTS.md` content. A CI grep enforces this for `plugins/`.
 - **Single source of instructions.** A rule lives in a skill or an agent, not in both.
 - **Namespaced references.** Agents and skills refer to dependencies as `engineering-paved-path:react-best-practices`, `research-tools:researcher`, and so on.

@@ -1,0 +1,12 @@
+{
+  "name": "research-tools",
+  "displayName": "Research Tools",
+  "version": "1.0.0",
+  "description": "Read-only research and option-comparison agents with a Bash guard that keeps them from changing anything.",
+  "author": {
+    "name": "AI Engineering"
+  },
+  "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["research", "read-only", "brainstorm", "evidence"]
+}

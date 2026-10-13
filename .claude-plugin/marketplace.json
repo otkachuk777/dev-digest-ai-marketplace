@@ -10,6 +10,11 @@
       "name": "engineering-paved-path",
       "source": "./plugins/engineering-paved-path",
       "description": "Best-practice skills for a TypeScript web stack: React, Fastify, Drizzle, Postgres, Zod, security and architecture placement."
+    },
+    {
+      "name": "research-tools",
+      "source": "./plugins/research-tools",
+      "description": "Read-only researcher and brainstorm agents with a Bash guard that keeps them from changing anything."
     }
   ]
 }
