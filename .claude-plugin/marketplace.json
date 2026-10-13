@@ -25,6 +25,11 @@
       "name": "quality-review",
       "source": "./plugins/quality-review",
       "description": "Code review, security review, test writing and documentation agents, each confined by hooks to what it may touch."
+    },
+    {
+      "name": "sdd-engineering",
+      "source": "./plugins/sdd-engineering",
+      "description": "Spec Driven Development workflow: spec, plan, implement, verify and review with confined agents, plus a retrospective and an insights log."
     }
   ]
 }
