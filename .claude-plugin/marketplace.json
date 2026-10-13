@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "dev-digest-ai-marketplace",
+  "description": "Reusable AI engineering harness for Claude Code: skills, agents and workflows extracted from DevDigest.",
+  "owner": {
+    "name": "AI Engineering"
+  },
+  "plugins": []
+}

@@ -1,0 +1,14 @@
+# Local tooling
+.remember/
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+
+# Catalog site build output (generated, never committed)
+node_modules/
+site/dist/
+site/public/index.json
+site/public/releases.json
+site/public/stats.json
+site/public/bodies/
