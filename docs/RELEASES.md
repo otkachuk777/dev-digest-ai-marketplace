@@ -26,7 +26,8 @@ Tags are immutable. A tag always points at a commit that passed CI. Never move o
 
 - a marketplace entry name differs from the `name` in `plugin.json`, or the entry repeats `version`;
 - `version` is not SemVer, or `CHANGELOG.md` has no `## <version>` section, or `README.md`/`CHANGELOG.md` is missing;
-- a dependency is not in this marketplace, its local version does not satisfy the range, or dependencies form a cycle.
+- a dependency is not in this marketplace, its local version does not satisfy the range, or dependencies form a cycle;
+- a plugin file mentions the source project (`devdigest`, `dev-digest`, `reviewer-core`) or an absolute user path, or a skill's `name` differs from its directory name.
 
 With `--plugin <name>` it also fails when the working tree is dirty, the tag already exists, HEAD is not `origin/main`, or a dependency has no released tag satisfying its range.
 

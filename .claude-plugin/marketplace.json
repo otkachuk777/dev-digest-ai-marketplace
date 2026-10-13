@@ -5,5 +5,11 @@
   "owner": {
     "name": "AI Engineering"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "engineering-paved-path",
+      "source": "./plugins/engineering-paved-path",
+      "description": "Best-practice skills for a TypeScript web stack: React, Fastify, Drizzle, Postgres, Zod, security and architecture placement."
+    }
+  ]
 }
