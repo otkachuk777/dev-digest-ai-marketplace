@@ -18,7 +18,7 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
 .mono{font-family:'Geist Mono',ui-monospace,monospace}
 .muted{color:var(--muted)}.small{font-size:13px}.grow{flex:1}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.wrap{max-width:1160px;margin:0 auto;padding-left:24px;padding-right:24px}
+.wrap{width:100%;max-width:1160px;margin:0 auto;padding-left:24px;padding-right:24px}
 .page{min-height:100vh;display:flex;flex-direction:column}.page main{flex:1}
 
 /* header */
@@ -101,12 +101,12 @@ select.chip{padding-right:10px;max-width:180px}
 
 /* detail page */
 .detail{padding-top:24px;padding-bottom:56px}
-.crumbs{font-size:14px;color:var(--muted);margin-bottom:20px}
+.crumbs{min-width:0;overflow-wrap:anywhere;font-size:14px;color:var(--muted);margin-bottom:20px}
 .dhead{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
-.dhead .info{max-width:720px}
+.dhead .info{max-width:720px;min-width:0;overflow-wrap:anywhere}
 .dhead .meta{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.dhead h1{margin:0 0 8px;font:500 38px 'Geist Mono',monospace;letter-spacing:-.02em;overflow-wrap:anywhere}
-.dhead .lead{margin:0;font-size:18px;color:var(--muted)}
+.dhead h1{min-width:0;margin:0 0 8px;font:500 38px 'Geist Mono',monospace;letter-spacing:-.02em;overflow-wrap:anywhere}
+.dhead .lead{min-width:0;overflow-wrap:anywhere;margin:0;font-size:18px;color:var(--muted)}
 .dhead .tags{margin-top:12px}
 .dhead .actions{display:flex;flex-wrap:wrap;gap:10px}
 .cols{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
@@ -115,7 +115,7 @@ select.chip{padding-right:10px;max-width:180px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
 .panel h2{margin:0 0 12px;font-size:16px;font-weight:600}
 .panel h3{margin:18px 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
-.panel .hint{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.panel .hint{min-width:0;overflow-wrap:anywhere;margin:0 0 12px;font-size:14px;color:var(--muted)}
 pre.sn{margin:0;background:var(--code);color:var(--code-ink);border-radius:10px;padding:16px;overflow-x:auto;font:400 13.5px/1.7 'Geist Mono',monospace;user-select:all}
 pre.sn .c{color:var(--code-dim)}
 .copyrow{margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}

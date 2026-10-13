@@ -26,6 +26,12 @@ for (const page of pages) {
   });
 }
 
+test('style.css keeps .wrap full width and wraps long detail text', () => {
+  const css = readFileSync(join(SRC, 'style.css'), 'utf8');
+  assert.match(css, /\.wrap\{[^}]*width:100%/);
+  assert.match(css, /\.dhead \.lead\{[^}]*overflow-wrap:anywhere/);
+});
+
 test('style.css uses only relative font urls and no inline-only tricks', () => {
   const css = readFileSync(join(SRC, 'style.css'), 'utf8');
   assert.doesNotMatch(css, /url\((?!\.\/fonts\/)/);

@@ -26,6 +26,7 @@ async function main() {
   try {
     [catalog, meta] = await Promise.all([loadCatalog(), loadMeta()]);
   } catch (e) {
+    document.title = 'Catalog unavailable';
     root.innerHTML = tileHtml('error', { message: e.message });
     root.addEventListener('click', (ev) => { if (ev.target.closest('[data-action="retry"]')) location.reload(); });
     return;
@@ -52,7 +53,8 @@ async function main() {
   const rec = art.channels[channel];
   if (!rec) {
     const other = channel === 'stable' ? 'latest' : 'stable';
-    root.innerHTML = tileHtml('not-in-stable', { switchUrl: detailHref(id, other) });
+    document.title = `${displayName(art)} · not in ${channel}`;
+    root.innerHTML = tileHtml('not-in-stable', { switchUrl: detailHref(id, other, true) });
     return;
   }
 
@@ -88,7 +90,7 @@ ${rec.body ? `<section class="panel md" aria-label="Artifact body" id="body"><h2
   $('copy').addEventListener('click', async () => {
     const text = steps.map((s) => s.command).join('\n');
     const ok = await copyText(text);
-    if (!ok) selectContents($('snippet'));
+    if (!ok) { selectContents($('snippet')); $('snippet').focus(); }
     $('copy-status').textContent = ok ? 'Copied' : 'Clipboard is not available. Press Ctrl/Cmd+C to copy the selected text.';
   });
   $('snippet').addEventListener('focus', () => selectContents($('snippet')));

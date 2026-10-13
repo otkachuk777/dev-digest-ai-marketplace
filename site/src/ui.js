@@ -3,8 +3,8 @@ import { displayName, tokenLabel, versionLabel } from './data.js';
 
 export const COPY_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>';
 
-export function detailHref(id, channel) {
-  return `artifact.html?id=${encodeURIComponent(id)}${channel === 'stable' ? '&channel=stable' : ''}`;
+export function detailHref(id, channel, explicit = false) {
+  return `artifact.html?id=${encodeURIComponent(id)}${channel === 'stable' || (explicit && channel === 'latest') ? `&channel=${channel}` : ''}`;
 }
 
 export function cardHtml(item, { terms, channel }) {
@@ -44,7 +44,7 @@ export function newsHtml(releases, siteBase) {
   }).join('');
 }
 
-export const sourceUrl = (repo, record) => `https://github.com/${repo}/blob/${record.ref}/${record.path}`;
+export const sourceUrl = (repo, record) => `https://github.com/${repo}/blob/${encodeURIComponent(record.ref)}/${record.path.split('/').map(encodeURIComponent).join('/')}`;
 
 export function installHtml({ steps, plugin, ownerNote }) {
   const pre = steps.map((s) => `<span class="c">${esc(s.comment)}</span>\n${esc(s.command)}`).join('\n');

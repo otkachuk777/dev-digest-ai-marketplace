@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installHtml, tokensHtml, securityHtml, sourceUrl } from '../src/ui.js';
+import { installHtml, tokensHtml, securityHtml, sourceUrl, detailHref } from '../src/ui.js';
 
 const record = {
   version: '1.1.0', description: 'd', tags: [], tokens: { always: 42, onInvoke: 1180 }, path: 'plugins/p/skills/x/SKILL.md', ref: 'main', body: null,
@@ -41,6 +41,17 @@ test('installHtml renders comment spans and a copy button', () => {
   assert.match(html, /<span class="c"># add<\/span>/);
   assert.match(html, /id="copy"/);
   assert.match(html, /owning plugin[\s\S]*p/);
+});
+
+test('detailHref carries channel=latest only when explicit', () => {
+  assert.equal(detailHref('a/b', 'latest'), 'artifact.html?id=a%2Fb');
+  assert.equal(detailHref('a/b', 'latest', true), 'artifact.html?id=a%2Fb&channel=latest');
+  assert.equal(detailHref('a/b', 'stable'), 'artifact.html?id=a%2Fb&channel=stable');
+  assert.equal(detailHref('a/b', 'stable', true), 'artifact.html?id=a%2Fb&channel=stable');
+});
+
+test('sourceUrl encodes ref and path segments', () => {
+  assert.equal(sourceUrl('o/r', { ...record, ref: 'feat/x#1', path: 'plugins/a b/SKILL.md' }), 'https://github.com/o/r/blob/feat%2Fx%231/plugins/a%20b/SKILL.md');
 });
 
 test('sourceUrl points at the pinned ref', () => {
