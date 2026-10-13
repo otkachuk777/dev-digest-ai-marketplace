@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -23,6 +25,12 @@ jobs:
 
       - name: Validate marketplace
         run: claude plugin validate .
+
+      - name: Check release consistency
+        run: node scripts/check-release.mjs
+
+      - name: Test release scripts
+        run: node --test "scripts/test/*.test.mjs"
 
       - name: Validate each plugin
         run: |
