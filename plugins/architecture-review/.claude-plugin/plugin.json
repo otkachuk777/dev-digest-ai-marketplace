@@ -1,0 +1,15 @@
+{
+  "name": "architecture-review",
+  "displayName": "Architecture Review",
+  "version": "1.0.0",
+  "description": "Read-only architecture reviewer that learns the repository's own architecture docs and checks, runs them first, then judges boundaries and placement.",
+  "author": {
+    "name": "AI Engineering"
+  },
+  "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["architecture", "review", "read-only", "dependency-rules"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" }
+  ]
+}

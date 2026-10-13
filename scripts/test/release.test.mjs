@@ -110,6 +110,15 @@ test('leftovers from the source project and mismatched skill names are reported'
   assert.doesNotMatch(text, /dev-digest project name/);
 });
 
+test('copies of the read-only guard must stay identical', () => {
+  const { root } = fixture();
+  write(join(root, 'plugins', 'base', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 0\n');
+  write(join(root, 'plugins', 'app', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 0\n');
+  assert.deepEqual(checkRepo(root).errors, []);
+  write(join(root, 'plugins', 'app', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 1\n');
+  assert.match(checkRepo(root).errors.join('\n'), /readonly-bash-guard\.sh in "app" differs from the copy in "base"/);
+});
+
 test('release requires released dependencies, a free tag and a clean main', () => {
   const { root } = fixture();
   let errors = checkRepo(root, { plugin: 'app' }).errors.join('\n');
