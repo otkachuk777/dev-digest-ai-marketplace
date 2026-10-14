@@ -20,7 +20,11 @@ export function parseStream(stdout) {
       }
     } else if (ev.type === 'result') result = ev;
   }
+  // `usage` covers the main session only; `modelUsage` adds every subagent and matches total_cost_usd.
+  const mu = Object.values(result?.modelUsage ?? {});
+  const all = (k) => mu.reduce((n, m) => n + (m[k] ?? 0), 0);
   const u = result?.usage ?? {};
+  const full = mu.length > 0;
   return {
     ok: Boolean(result) && result.is_error !== true && result.subtype === 'success',
     subtype: result?.subtype ?? 'no-result',
@@ -30,10 +34,10 @@ export function parseStream(stdout) {
     costUsd: result?.total_cost_usd ?? 0,
     durationMs: result?.duration_ms ?? 0,
     turns: result?.num_turns ?? 0,
-    inputTokens: u.input_tokens ?? 0,
-    outputTokens: u.output_tokens ?? 0,
-    cacheWriteTokens: u.cache_creation_input_tokens ?? 0,
-    cacheReadTokens: u.cache_read_input_tokens ?? 0,
+    inputTokens: full ? all('inputTokens') : (u.input_tokens ?? 0),
+    outputTokens: full ? all('outputTokens') : (u.output_tokens ?? 0),
+    cacheWriteTokens: full ? all('cacheCreationInputTokens') : (u.cache_creation_input_tokens ?? 0),
+    cacheReadTokens: full ? all('cacheReadInputTokens') : (u.cache_read_input_tokens ?? 0),
     toolCalls: tools.length,
     toolResults: results.join('\n---\n'),
     // Tool calls Claude Code refused for lack of an approval nobody can give in a headless run.

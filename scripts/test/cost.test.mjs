@@ -20,6 +20,16 @@ test('parseStream reads usage, cost, tool calls and hook denials', () => {
   assert.match(s.toolResults, /fine/);
 });
 
+test('parseStream takes tokens from modelUsage so subagents are counted', () => {
+  const out = ev({ type: 'result', subtype: 'success', is_error: false, result: 'x', total_cost_usd: 0.14,
+    usage: { input_tokens: 4, output_tokens: 204, cache_creation_input_tokens: 28059, cache_read_input_tokens: 71329 },
+    modelUsage: { 'claude-sonnet-5-5': { inputTokens: 6, outputTokens: 208, cacheReadInputTokens: 71329, cacheCreationInputTokens: 35715, costUSD: 0.14 } } });
+  const s = parseStream(out);
+  assert.deepEqual([s.inputTokens, s.outputTokens, s.cacheReadTokens, s.cacheWriteTokens], [6, 208, 71329, 35715]);
+  const two = parseStream(ev({ type: 'result', subtype: 'success', modelUsage: { a: { inputTokens: 1, outputTokens: 2, cacheReadInputTokens: 3, cacheCreationInputTokens: 4 }, b: { inputTokens: 10, outputTokens: 20, cacheReadInputTokens: 30, cacheCreationInputTokens: 40 } } }));
+  assert.deepEqual([two.inputTokens, two.outputTokens, two.cacheReadTokens, two.cacheWriteTokens], [11, 22, 33, 44]);
+});
+
 test('parseStream marks a run without a result or with an error as not ok', () => {
   assert.equal(parseStream('').ok, false);
   assert.equal(parseStream('').subtype, 'no-result');
