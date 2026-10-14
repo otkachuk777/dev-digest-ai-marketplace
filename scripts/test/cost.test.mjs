@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { stagesFor } from '../cost-baseline/run.mjs';
 import { parseStream, sumStages, median, summarize, compare, summaryTable, stageTable } from '../cost-baseline/lib.mjs';
 
 const ev = (o) => `${JSON.stringify(o)}\n`;
@@ -71,4 +72,11 @@ test('tables render the numbers', () => {
   const runs = [run(2, 1000, true), run(4, 3000, true)];
   assert.match(summaryTable(summarize(runs)), /Cost per successful workflow \| \$3\.00/);
   assert.match(stageTable(runs), /\| plan \| \$1\.50 \|/);
+});
+
+test('only the plan stage runs with bypassed permissions (it saves a file under ~/.claude)', () => {
+  const stages = stagesFor('/p/plan.md');
+  assert.deepEqual(stages.map((s) => s.name), ['plan', 'implement', 'verify', 'review']);
+  assert.deepEqual(stages.filter((s) => s.permissionMode === 'bypassPermissions').map((s) => s.name), ['plan']);
+  assert.ok(stages.every((s) => s.prompt.includes('/p/plan.md') || s.name === 'review'));
 });
