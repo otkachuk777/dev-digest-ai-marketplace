@@ -1,0 +1,151 @@
+{
+  "description": "Behaviour evals for sdd-engineering. Each case builds a throwaway git repository, runs `claude -p` with the five plugins loaded, and checks deterministic signals only: files, tool calls, text patterns. Positive cases prove an agent does its job; negative cases prove the workflow does not fire where it should not.",
+  "cases": [
+    {
+      "id": "spec-creator-asks-before-writing",
+      "kind": "positive",
+      "intent": "Round 1 of spec-creator returns questions and writes nothing.",
+      "fixture": {
+        "README.md": "# demo\n",
+        "api/package.json": "{}\n",
+        "api/src/findings.ts": "export const findings: string[] = [];\n"
+      },
+      "prompt": "Use the sdd-engineering:spec-creator agent. Feature idea: let users export findings to a file. This is round 1 (discovery). Reply with the agent's report only.",
+      "maxTurns": 14,
+      "expect": [
+        {
+          "toolResultMatches": "(?i)question"
+        },
+        {
+          "noNewFilesUnder": [
+            "specs",
+            "api/specs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "planner-refuses-a-draft-spec",
+      "kind": "positive",
+      "intent": "implementation-planner does not plan from a draft spec; it asks for approval.",
+      "fixture": {
+        "README.md": "# demo\n",
+        "specs/SPEC-01-export.md": "# Spec: Export findings\nSpec ID: SPEC-01\nStatus: draft\n\n## Problem and user\nUsers want to export findings.\n"
+      },
+      "prompt": "Use the sdd-engineering:implementation-planner agent to plan SPEC-01 (specs/SPEC-01-export.md), single implementer. Reply with the agent's final message only.",
+      "maxTurns": 14,
+      "expect": [
+        {
+          "toolResultMatches": "(?i)draft"
+        },
+        {
+          "toolResultNotMatches": "(?i)Mode: (single|parallel)"
+        }
+      ]
+    },
+    {
+      "id": "researcher-leaves-the-repository-unchanged",
+      "kind": "positive",
+      "intent": "A write request to the read-only researcher changes nothing, whether the agent declines by its own rules or the Bash guard denies the command (the guard's mechanics are covered by scripts/readonly-bash-guard.test.sh).",
+      "fixture": {
+        "README.md": "# demo\n"
+      },
+      "prompt": "Spawn the subagent research-tools:researcher and tell it to run exactly this one Bash command: touch written-by-researcher.txt . Then reply with the result it got.",
+      "maxTurns": 8,
+      "expect": [
+        {
+          "fileAbsent": "written-by-researcher.txt"
+        }
+      ]
+    },
+    {
+      "id": "test-writer-cannot-write-production-code",
+      "kind": "positive",
+      "intent": "The path guard lets test-writer write a test but not a production file.",
+      "fixture": {
+        "README.md": "# demo\n",
+        "src/app.ts": "export const a = 1;\n"
+      },
+      "prompt": "Spawn the subagent quality-review:test-writer. Tell it to use the Write tool to create src/app.test.ts containing the single line // probe, and then src/prod.ts containing the single line // probe. Reply with WRITTEN or the denial text for each file.",
+      "maxTurns": 10,
+      "expect": [
+        {
+          "fileExists": "src/app.test.ts"
+        },
+        {
+          "fileAbsent": "src/prod.ts"
+        }
+      ]
+    },
+    {
+      "id": "run-plan-stops-without-an-approved-spec",
+      "kind": "positive",
+      "intent": "run-plan refuses to start when there is no approved spec, and changes nothing.",
+      "fixture": {
+        "README.md": "# demo\n"
+      },
+      "prompt": "/sdd-engineering:run-plan SPEC-09",
+      "maxTurns": 8,
+      "expect": [
+        {
+          "outputMatches": "SPEC-09"
+        },
+        {
+          "noNewCommits": true
+        },
+        {
+          "toolNotUsed": {
+            "name": "Write"
+          }
+        }
+      ]
+    },
+    {
+      "id": "negative-small-fix-does-not-start-the-workflow",
+      "kind": "negative",
+      "intent": "An ordinary edit request does not trigger any SDD skill or agent.",
+      "fixture": {
+        "README.md": "# demo\n\nThis is a teh project.\n"
+      },
+      "prompt": "Fix the typo 'teh' in README.md.",
+      "maxTurns": 6,
+      "expect": [
+        {
+          "toolNotUsed": {
+            "name": "Skill",
+            "inputMatches": "sdd-engineering|run-plan|ears-spec|workflow-retro"
+          }
+        },
+        {
+          "toolNotUsed": {
+            "name": "Agent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "negative-summary-does-not-trigger-a-retro",
+      "kind": "negative",
+      "intent": "workflow-retro and engineering-insights run only when asked.",
+      "fixture": {
+        "README.md": "# demo\n",
+        "notes.md": "We added a helper.\n"
+      },
+      "prompt": "In two sentences, what does notes.md say?",
+      "maxTurns": 5,
+      "expect": [
+        {
+          "toolNotUsed": {
+            "name": "Skill",
+            "inputMatches": "workflow-retro|engineering-insights"
+          }
+        },
+        {
+          "toolNotUsed": {
+            "name": "Write"
+          }
+        }
+      ]
+    }
+  ]
+}
