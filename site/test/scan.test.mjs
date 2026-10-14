@@ -7,7 +7,7 @@ import { assertValidCatalog } from '../build/schema.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { createFixtureRepo, FIXTURE_REPO } from '../dev/make-fixture-repo.mjs';
-import { scanPlugin, splitList } from '../build/scan.mjs';
+import { scanPlugin, splitList, normalizeDependencies } from '../build/scan.mjs';
 
 test('splitList splits on commas outside parentheses and accepts arrays', () => {
   assert.deepEqual(splitList('Read, Grep, Bash(git diff:*, git log:*)'), ['Read', 'Grep', 'Bash(git diff:*, git log:*)']);
@@ -182,4 +182,24 @@ test('an uppercase plugin name passes the catalog schema', () => {
   } finally {
     cleanup();
   }
+});
+
+test('normalizeDependencies accepts strings and objects and drops junk', () => {
+  assert.deepEqual(normalizeDependencies([
+    'a', 'b@other', { name: 'c', version: '^1.0.0' }, { name: 'd', version: '~2.1.0', marketplace: 'other' }, { name: '' }, 7, null,
+  ]), [
+    { name: 'a', range: '*', marketplace: null },
+    { name: 'b', range: '*', marketplace: 'other' },
+    { name: 'c', range: '^1.0.0', marketplace: null },
+    { name: 'd', range: '~2.1.0', marketplace: 'other' },
+  ]);
+  assert.deepEqual(normalizeDependencies(undefined), []);
+  assert.deepEqual(normalizeDependencies('a'), []);
+});
+
+test('scanPlugin reads dependencies from plugin.json', () => {
+  withPlugin({ name: 'p', version: '1.0.0', dependencies: [{ name: 'base', version: '^1.0.0' }] }, (scan) => {
+    assert.deepEqual(scan.dependencies, [{ name: 'base', range: '^1.0.0', marketplace: null }]);
+  });
+  withPlugin({ name: 'p', version: '1.0.0' }, (scan) => assert.deepEqual(scan.dependencies, []));
 });

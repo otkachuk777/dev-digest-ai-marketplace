@@ -114,6 +114,7 @@ select.chip{padding-right:10px;max-width:180px}
 .col-side{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:20px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
 .panel h2{margin:0 0 12px;font-size:16px;font-weight:600}
+.deps{list-style:none;margin:0 0 4px;padding:0}.deps li{padding:3px 0}
 .panel h3{margin:18px 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
 .panel .hint{min-width:0;overflow-wrap:anywhere;margin:0 0 12px;font-size:14px;color:var(--muted)}
 pre.sn{margin:0;background:var(--code);color:var(--code-ink);border-radius:10px;padding:16px;overflow-x:auto;font:400 13.5px/1.7 'Geist Mono',monospace;user-select:all}

@@ -8,7 +8,7 @@ import { reportProblemUrl, requestSkillUrl } from './issues.js';
 import { copyText, selectContents } from './clipboard.js';
 import { displayName, versionLabel } from './data.js';
 import { esc } from './highlight.js';
-import { tileHtml, installHtml, tokensHtml, securityHtml, sourceUrl, detailHref } from './ui.js';
+import { tileHtml, installHtml, tokensHtml, securityHtml, dependenciesHtml, sourceUrl, detailHref } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
 const render = createRenderer({ marked, purify: DOMPurify });
@@ -58,7 +58,12 @@ async function main() {
     return;
   }
 
-  const steps = installSteps({ repo: catalog.repo, plugin: art.plugin, channel, marketplace: catalog.channels[channel].marketplace });
+  const pluginRec = art.type === 'plugin' ? rec : catalog.artifacts.find((a) => a.id === `${art.plugin}/plugin/${art.plugin}`)?.channels[channel];
+  const dependencies = pluginRec?.dependencies ?? [];
+  const requiredBy = art.type === 'plugin'
+    ? catalog.artifacts.filter((a) => a.type === 'plugin' && a.channels[channel]?.dependencies?.some((d) => !d.marketplace && d.name === art.plugin)).map((a) => a.plugin)
+    : [];
+  const steps = installSteps({ repo: catalog.repo, plugin: art.plugin, channel, marketplace: catalog.channels[channel].marketplace, dependencies });
   const tags = rec.tags.map((t) => `<span class="tag">#${esc(t)}</span>`).join('');
   const bodyTitle = art.type === 'skill' ? 'SKILL.md' : art.type === 'plugin' ? 'README.md' : `${art.type} file`;
   root.innerHTML = `
@@ -81,6 +86,7 @@ async function main() {
 ${rec.body ? `<section class="panel md" aria-label="Artifact body" id="body"><h2>${esc(bodyTitle)}</h2><div id="md">Loading…</div></section>` : ''}
 </div>
 <aside class="col-side">
+${art.type === 'plugin' && (dependencies.length || requiredBy.length) ? `<section class="panel" id="deps">${dependenciesHtml({ dependencies, requiredBy, channel })}</section>` : ''}
 <section class="panel">${tokensHtml(rec.tokens)}</section>
 <section class="panel" aria-labelledby="sec">${securityHtml(rec)}</section>
 <section class="panel"><h2>Source</h2><p class="mono small muted">${esc(`github.com/${catalog.repo}/blob/${rec.ref}/${rec.path}`)}</p></section>
