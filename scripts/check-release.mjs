@@ -3,12 +3,54 @@
 //
 //   node scripts/check-release.mjs                    structural checks for every plugin (used by CI)
 //   node scripts/check-release.mjs --plugin <name>    also check that <name> is ready to be tagged
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { extname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   git, loadMarketplace, normalizeDependency, parseArgs, parseVersion, releasedVersions, satisfies,
 } from './lib/common.mjs';
+
+// Text that must not leak out of the source project into a published plugin.
+// "dev-digest-ai-marketplace" is this repository's own name and is allowed.
+const LEFTOVERS = [
+  { re: /devdigest/i, what: 'DevDigest product name' },
+  { re: /dev-digest(?!-ai-marketplace)/i, what: 'dev-digest project name' },
+  { re: /reviewer-core/, what: 'DevDigest module reviewer-core' },
+  { re: /\/Users\/[A-Za-z]/, what: 'absolute user path' },
+];
+const TEXT_EXT = new Set(['.md', '.json', '.sh', '.mjs', '.js', '.ts', '.tsx', '.py', '.txt', '.yml', '.yaml', '']);
+
+function* walk(dir) {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) {
+      if (name !== 'node_modules') yield* walk(full);
+    } else yield full;
+  }
+}
+
+function frontmatterName(text) {
+  const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text);
+  return m ? /^name:\s*["']?([^"'\r\n]+?)["']?\s*$/m.exec(m[1])?.[1] : undefined;
+}
+
+function checkContent(p, where, errors) {
+  for (const file of walk(p.dir)) {
+    if (!TEXT_EXT.has(extname(file))) continue;
+    const rel = relative(p.dir, file);
+    const text = readFileSync(file, 'utf8');
+    for (const { re, what } of LEFTOVERS) {
+      const line = text.split('\n').findIndex((l) => re.test(l));
+      if (line >= 0) errors.push(`${where}: ${what} in ${rel}:${line + 1}`);
+    }
+    if (file.endsWith('SKILL.md')) {
+      const dirName = relative(join(p.dir, 'skills'), join(file, '..'));
+      if (!rel.startsWith('skills/') || dirName.includes('/')) continue;
+      const name = frontmatterName(text);
+      if (name !== dirName) errors.push(`${where}: skill ${rel} has name "${name}", expected "${dirName}"`);
+    }
+  }
+}
 
 export function checkRepo(root, { plugin: releasePlugin } = {}) {
   const errors = [];
@@ -45,6 +87,8 @@ export function checkRepo(root, { plugin: releasePlugin } = {}) {
       errors.push(`${where}: plugin.json "version" must be SemVer, got ${JSON.stringify(version)}`);
     }
 
+    checkContent(p, where, errors);
+
     for (const file of ['README.md', 'CHANGELOG.md']) {
       if (!existsSync(join(p.dir, file))) errors.push(`${where}: missing ${file}`);
     }
@@ -66,6 +110,18 @@ export function checkRepo(root, { plugin: releasePlugin } = {}) {
         errors.push(`${where}: depends on "${dep.name}", which is not in this marketplace`);
       } else if (!satisfies(target.manifest.version, dep.range)) {
         errors.push(`${where}: "${dep.name}" is at ${target.manifest.version}, which does not satisfy ${dep.range}`);
+      }
+    }
+  }
+
+  // Guard scripts are copied into each plugin that needs them; the copies must not drift.
+  for (const script of ['readonly-bash-guard.sh', 'path-guard.sh']) {
+    const copies = plugins
+      .filter((p) => p.dir && existsSync(join(p.dir, 'scripts', script)))
+      .map((p) => ({ name: p.name, text: readFileSync(join(p.dir, 'scripts', script), 'utf8') }));
+    for (const c of copies.slice(1)) {
+      if (c.text !== copies[0].text) {
+        errors.push(`${script} in "${c.name}" differs from the copy in "${copies[0].name}"; keep them identical`);
       }
     }
   }

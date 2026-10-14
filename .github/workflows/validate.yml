@@ -32,6 +32,28 @@ jobs:
       - name: Test release scripts
         run: node --test "scripts/test/*.test.mjs"
 
+      - name: Test plugin scripts
+        run: |
+          for t in plugins/*/scripts/*.test.sh plugins/*/skills/*/scripts/*.test.sh; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            bash "$t"
+            echo "::endgroup::"
+          done
+          for t in plugins/*/skills/*/scripts/*.test.py; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            python3 "$t"
+            echo "::endgroup::"
+          done
+
+      - name: Validate behaviour evals
+        run: |
+          for e in plugins/*/evals/run.mjs; do
+            [ -f "$e" ] || continue
+            node "$e" --validate
+          done
+
       - name: Validate each plugin
         run: |
           for dir in plugins/*/; do

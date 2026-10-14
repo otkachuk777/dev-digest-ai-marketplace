@@ -1,0 +1,21 @@
+{
+  "name": "engineering-paved-path",
+  "displayName": "Engineering Paved Path",
+  "version": "1.0.0",
+  "description": "Best-practice skills for a TypeScript web stack: React, Fastify, Drizzle, Postgres, Zod, security, and architecture placement rules.",
+  "author": {
+    "name": "AI Engineering"
+  },
+  "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "fastify",
+    "drizzle",
+    "postgres",
+    "zod",
+    "typescript",
+    "architecture",
+    "security"
+  ]
+}

@@ -95,6 +95,30 @@ test('structural problems are reported', () => {
   assert.match(text, /does not satisfy \^1\.0\.0/);
 });
 
+test('leftovers from the source project and mismatched skill names are reported', () => {
+  const { root } = fixture();
+  write(join(root, 'plugins', 'base', 'skills', 'good', 'SKILL.md'), '---\nname: good\ndescription: ok\n---\nbody\n');
+  assert.deepEqual(checkRepo(root).errors, []);
+
+  write(join(root, 'plugins', 'base', 'skills', 'bad', 'SKILL.md'), '---\nname: other\ndescription: x\n---\nSee reviewer-core and DevDigest.\n');
+  write(join(root, 'plugins', 'base', 'README.md'), 'Install from dev-digest-ai-marketplace. Path /Users/someone/x\n');
+  const text = checkRepo(root).errors.join('\n');
+  assert.match(text, /skill skills\/bad\/SKILL\.md has name "other", expected "bad"/);
+  assert.match(text, /DevDigest product name in skills\/bad\/SKILL\.md:5/);
+  assert.match(text, /reviewer-core in skills\/bad\/SKILL\.md:5/);
+  assert.match(text, /absolute user path in README\.md:1/);
+  assert.doesNotMatch(text, /dev-digest project name/);
+});
+
+test('copies of the read-only guard must stay identical', () => {
+  const { root } = fixture();
+  write(join(root, 'plugins', 'base', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 0\n');
+  write(join(root, 'plugins', 'app', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 0\n');
+  assert.deepEqual(checkRepo(root).errors, []);
+  write(join(root, 'plugins', 'app', 'scripts', 'readonly-bash-guard.sh'), '#!/bin/bash\nexit 1\n');
+  assert.match(checkRepo(root).errors.join('\n'), /readonly-bash-guard\.sh in "app" differs from the copy in "base"/);
+});
+
 test('release requires released dependencies, a free tag and a clean main', () => {
   const { root } = fixture();
   let errors = checkRepo(root, { plugin: 'app' }).errors.join('\n');

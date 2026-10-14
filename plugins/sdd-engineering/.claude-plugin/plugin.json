@@ -1,0 +1,18 @@
+{
+  "name": "sdd-engineering",
+  "displayName": "SDD Engineering",
+  "version": "1.0.0",
+  "description": "Spec Driven Development workflow: spec, plan, implement, verify and review with confined agents, plus a retrospective and an insights log.",
+  "author": {
+    "name": "AI Engineering"
+  },
+  "repository": "https://github.com/otkachuk777/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["spec-driven-development", "ears", "planning", "implementation", "workflow", "retrospective"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" },
+    { "name": "research-tools", "version": "^1.0.0" },
+    { "name": "architecture-review", "version": "^1.0.0" },
+    { "name": "quality-review", "version": "^1.0.0" }
+  ]
+}

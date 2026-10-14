@@ -36,3 +36,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-
 Search the marketplace in the browser: https://otkachuk777.github.io/dev-digest-ai-marketplace/
 
 The site lives in [`site/`](site/README.md), is built from `main` (latest) and from the release tags pinned in the `stable` branch, and is deployed by `.github/workflows/pages.yml`.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Plugins that bundle third-party material list it in their `NOTICE` file.

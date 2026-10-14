@@ -1,0 +1,42 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/readonly-bash-guard.sh spec-creator implementation-planner plan-verifier"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/path-guard.sh implementation-planner=plans spec-creator=specs"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/agent-type-guard.sh spec-creator=researcher implementation-planner=brainstorm"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*playwright.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/browser-url-guard.sh spec-creator"
+          }
+        ]
+      }
+    ]
+  }
+}
