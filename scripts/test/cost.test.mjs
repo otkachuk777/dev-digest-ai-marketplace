@@ -25,6 +25,14 @@ test('parseStream marks a run without a result or with an error as not ok', () =
   assert.equal(parseStream(ev({ type: 'result', subtype: 'error_max_turns', is_error: true })).ok, false);
 });
 
+test('parseStream keeps the reason a stage failed', () => {
+  const failed = parseStream(ev({ type: 'result', subtype: 'success', is_error: true, result: 'Failed to authenticate: OAuth session expired' }));
+  assert.equal(failed.ok, false);
+  assert.match(failed.error, /OAuth session expired/);
+  assert.equal(parseStream(ev({ type: 'result', subtype: 'error_max_turns', is_error: true })).error, 'error_max_turns');
+  assert.equal(parseStream(ev({ type: 'result', subtype: 'success', is_error: false, result: 'ok' })).error, '');
+});
+
 test('median handles odd, even and empty input', () => {
   assert.equal(median([3, 1, 2]), 2);
   assert.equal(median([4, 1, 3, 2]), 2.5);

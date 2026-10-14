@@ -67,10 +67,18 @@ function runClaude(cwd, stage, model, plugins) {
   return { name: stage.name, ...s };
 }
 
+/** One trivial call before spending anything: an expired login or a dead API fails here, with its reason. */
+function preflight(model) {
+  const proc = spawnSync('claude', ['-p', 'Reply with the single word OK.', '--output-format', 'stream-json', '--verbose', '--max-turns', '1', '--model', model],
+    { env: childEnv(model), encoding: 'utf8', timeout: 120000 });
+  const s = parseStream(proc.stdout ?? '');
+  return s.ok ? null : (s.error || String(proc.stderr ?? '').trim().slice(0, 300) || 'claude produced no result');
+}
+
 function gate(repo, base, stages) {
   const critical = [];
   const checks = {};
-  for (const s of stages) if (!s.ok) critical.push(`stage "${s.name}" did not finish (${s.subtype})`);
+  for (const s of stages) if (!s.ok) critical.push(`stage "${s.name}" did not finish: ${s.error || s.subtype}`);
   checks.tests = spawnSync('npm', ['test'], { cwd: repo, encoding: 'utf8' }).status === 0;
   copyFileSync(join(HERE, 'fixture', 'acceptance.test.js'), join(repo, 'test', 'acceptance.test.js'));
   checks.acceptance = spawnSync('node', ['--test', 'test/acceptance.test.js'], { cwd: repo, encoding: 'utf8' }).status === 0;
@@ -102,7 +110,7 @@ function oneRun(i, { label, model, only }) {
       console.log(`  run ${i}: ${st.name} ...`);
       const r = runClaude(repo, st, model, PLUGINS);
       stages.push(r);
-      console.log(`    ${r.ok ? 'ok' : 'FAILED'} $${r.costUsd.toFixed(2)} ${(r.durationMs / 1000).toFixed(0)}s ${r.turns} turns`);
+      console.log(`    ${r.ok ? 'ok' : `FAILED (${r.error || r.subtype})`} $${r.costUsd.toFixed(2)} ${(r.durationMs / 1000).toFixed(0)}s ${r.turns} turns`);
       if (!r.ok) break;
     }
     const g = gate(repo, base, stages);
@@ -145,6 +153,11 @@ function main() {
   }
   const pluginsSha = git(ROOT, 'rev-parse', '--short', 'HEAD').stdout.trim();
   console.log(`cost baseline "${label}": ${runs} run(s), model ${model}, plugins at ${pluginsSha}`);
+  const problem = preflight(model);
+  if (problem) {
+    console.error(`\npreflight failed, nothing was run and nothing was spent:\n  ${problem}\n\nFix it (for an expired login, run \`claude\` and \`/login\` in a terminal) and start again.`);
+    process.exit(3);
+  }
   const results = [];
   for (let i = 1; i <= runs; i++) results.push(oneRun(i, { label, model, only }));
   const out = resolve(arg('--out', join(ROOT, 'docs', 'cost-baseline', `${label}.json`)));

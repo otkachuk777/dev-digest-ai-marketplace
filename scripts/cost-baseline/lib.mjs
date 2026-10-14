@@ -25,6 +25,8 @@ export function parseStream(stdout) {
     ok: Boolean(result) && result.is_error !== true && result.subtype === 'success',
     subtype: result?.subtype ?? 'no-result',
     text: typeof result?.result === 'string' ? result.result : '',
+    // The reason a stage failed (for example an expired login), kept so a failure is diagnosable.
+    error: result && (result.is_error === true || result.subtype !== 'success') ? String(result.result ?? result.subtype ?? 'unknown error').slice(0, 300) : '',
     costUsd: result?.total_cost_usd ?? 0,
     durationMs: result?.duration_ms ?? 0,
     turns: result?.num_turns ?? 0,
