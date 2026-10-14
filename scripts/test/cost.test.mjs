@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { stagesFor } from '../cost-baseline/run.mjs';
-import { parseStream, sumStages, median, summarize, compare, summaryTable, stageTable } from '../cost-baseline/lib.mjs';
+import { verifierVerdict, parseStream, sumStages, median, summarize, compare, summaryTable, stageTable } from '../cost-baseline/lib.mjs';
 
 const ev = (o) => `${JSON.stringify(o)}\n`;
 
@@ -32,6 +32,23 @@ test('parseStream keeps the reason a stage failed', () => {
   assert.match(failed.error, /OAuth session expired/);
   assert.equal(parseStream(ev({ type: 'result', subtype: 'error_max_turns', is_error: true })).error, 'error_max_turns');
   assert.equal(parseStream(ev({ type: 'result', subtype: 'success', is_error: false, result: 'ok' })).error, '');
+});
+
+test('verifierVerdict is clean only when nothing is Not met or Partially met and the spec is ready', () => {
+  const clean = '13 items: Met 12 · Partially met 0 · Not met 0 · Not verifiable 1 → gaps\nSPEC-01: ready for `implemented`.';
+  assert.deepEqual(verifierVerdict(clean), { clean: true, notMet: 0, partial: 0, notVerifiable: 1 });
+  assert.equal(verifierVerdict('Met 10 · Partially met 1 · Not met 0\nSPEC-01: ready for `implemented`.').clean, false);
+  assert.equal(verifierVerdict('Met 9 · Partially met 0 · Not met 2\nSPEC-01: not ready').clean, false);
+  assert.equal(verifierVerdict('Met 12 · Partially met 0 · Not met 0\nSPEC-01: not ready — AC-3').clean, false);
+  assert.equal(verifierVerdict('').clean, false);
+});
+
+test('parseStream counts refusals caused by a missing approval', () => {
+  const out = ev({ type: 'user', message: { content: [
+    { type: 'tool_result', content: 'This Bash command contains multiple operations. The following parts require approval: x' },
+    { type: 'tool_result', content: 'Claude requested permissions to edit /a/b which is a sensitive file.' },
+    { type: 'tool_result', content: 'ok' }] } });
+  assert.equal(parseStream(out).permissionDenials, 2);
 });
 
 test('median handles odd, even and empty input', () => {
@@ -79,5 +96,6 @@ test('only the plan stage runs with bypassed permissions (it saves a file under 
   assert.deepEqual(stages.map((s) => s.name), ['plan', 'implement', 'verify', 'review']);
   assert.deepEqual(stages.filter((s) => s.permissionMode === 'bypassPermissions').map((s) => s.name), ['plan']);
   assert.deepEqual(stages.find((s) => s.name === 'plan').deny, ['Edit', 'NotebookEdit']);
+  assert.ok(stages.filter((s) => ['verify', 'review'].includes(s.name)).every((s) => s.tools.includes('Bash')));
   assert.ok(stages.every((s) => s.prompt.includes('/p/plan.md') || s.name === 'review'));
 });

@@ -36,17 +36,34 @@ export function parseStream(stdout) {
     cacheReadTokens: u.cache_read_input_tokens ?? 0,
     toolCalls: tools.length,
     toolResults: results.join('\n---\n'),
+    // Tool calls Claude Code refused for lack of an approval nobody can give in a headless run.
+    permissionDenials: results.filter((r) => /requires approval|requested permissions|multiple operations/.test(r)).length,
     hookDenials: results.filter((r) => /hook error|readonly-bash-guard|path-guard|agent-type-guard|browser-url-guard/.test(r)).length,
   };
 }
 
-const SUM_KEYS = ['costUsd', 'durationMs', 'turns', 'inputTokens', 'outputTokens', 'cacheWriteTokens', 'cacheReadTokens', 'toolCalls', 'hookDenials'];
+const SUM_KEYS = ['costUsd', 'durationMs', 'turns', 'inputTokens', 'outputTokens', 'cacheWriteTokens', 'cacheReadTokens', 'toolCalls', 'hookDenials', 'permissionDenials'];
 
 /** Adds up the numeric fields of several stages. */
 export function sumStages(stages) {
   const out = Object.fromEntries(SUM_KEYS.map((k) => [k, 0]));
   for (const s of stages) for (const k of SUM_KEYS) out[k] += s[k] ?? 0;
   return out;
+}
+
+/**
+ * Reads the plan-verifier's own (English) report. "Clean" means no item is Not met or Partially met and the
+ * spec is ready for `implemented`. Items that are Not verifiable are counted separately: the verifier cannot
+ * prove after the fact that a test was seen failing first, which would otherwise turn every inline run red.
+ */
+export function verifierVerdict(report) {
+  const n = (re) => { const m = re.exec(report); return m ? Number(m[1]) : null; };
+  const notMet = n(/Not met (\d+)/);
+  const partial = n(/Partially met (\d+)/);
+  return {
+    clean: notMet === 0 && partial === 0 && /ready for `?implemented/i.test(report),
+    notMet, partial, notVerifiable: n(/Not verifiable (\d+)/),
+  };
 }
 
 export function median(values) {
@@ -106,6 +123,7 @@ export function summaryTable(s) {
     `| Median input / output tokens | ${k(m.inputTokens)} / ${k(m.outputTokens)} |`,
     `| Median cache read / write tokens | ${k(m.cacheReadTokens)} / ${k(m.cacheWriteTokens)} |`,
     `| Median API turns / tool calls | ${Math.round(m.turns)} / ${Math.round(m.toolCalls)} |`,
+    `| Median permission refusals | ${Math.round(m.permissionDenials)} (headless friction: should be 0) |`,
   ].join('\n');
 }
 

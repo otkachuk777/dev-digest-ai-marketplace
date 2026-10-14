@@ -14,7 +14,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compare, parseStream, stageTable, sumStages, summarize, summaryTable } from './lib.mjs';
+import { compare, parseStream, stageTable, sumStages, summarize, summaryTable, verifierVerdict } from './lib.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -52,11 +52,13 @@ export function stagesFor(planPath) {
       prompt: `The plan is at ${planPath}. Execute it: start one sdd-engineering:implementer agent per chunk of the plan, one after another, giving it the plan path and the chunk number. Nobody commits. Reply with each implementer's status line only.`,
     },
     {
-      name: 'verify', tools: ['Agent'], maxTurns: 30,
+      // verify and review run read-only agents whose plugin hooks deny writes. Their compound read commands
+      // (BASE=$(git merge-base ...); git diff ...) need unrestricted Bash, or a headless run refuses them.
+      name: 'verify', tools: ['Agent', 'Bash'], maxTurns: 30,
       prompt: `Use the sdd-engineering:plan-verifier agent with pass: 1 on the plan ${planPath} and the spec specs/${SPEC_NAME}. Reply with its Summary line and its Spec status line only.`,
     },
     {
-      name: 'review', tools: ['Agent'], maxTurns: 40,
+      name: 'review', tools: ['Agent', 'Bash'], maxTurns: 40,
       prompt: 'Start quality-review:code-reviewer and quality-review:security-reviewer in parallel, in one message, on the uncommitted changes in the working tree. Reply with each agent\'s Verdict line only.',
     },
   ];
@@ -69,8 +71,8 @@ function runClaude(cwd, stage, model, plugins) {
   const t0 = Date.now();
   const proc = spawnSync('claude', args, { cwd, env: childEnv(model), encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   const s = parseStream(proc.stdout ?? '');
-  if (!s.durationMs) s.durationMs = Date.now() - t0;
-  return { name: stage.name, ...s };
+  // Wall clock, not the CLI's duration_ms: subagents that finish after the main turn are not in that figure.
+  return { name: stage.name, ...s, reportedDurationMs: s.durationMs, durationMs: Date.now() - t0 };
 }
 
 /** One trivial call before spending anything: an expired login or a dead API fails here, with its reason. */
@@ -89,13 +91,15 @@ function gate(repo, base, stages) {
   copyFileSync(join(HERE, 'fixture', 'acceptance.test.js'), join(repo, 'test', 'acceptance.test.js'));
   checks.acceptance = spawnSync('node', ['--test', 'test/acceptance.test.js'], { cwd: repo, encoding: 'utf8' }).status === 0;
   const verifier = stages.find((s) => s.name === 'verify');
-  checks.verifierSatisfied = Boolean(verifier && /satisfied/i.test(verifier.text) && !/gaps/i.test(verifier.text.replace(/satisfied\s*\|\s*gaps/i, '')));
+  const verdict = verifier ? verifierVerdict(verifier.toolResults) : { clean: false, notVerifiable: null };
+  checks.verifierClean = verdict.clean;
+  checks.notVerifiable = verdict.notVerifiable;
   checks.noCommit = git(repo, 'rev-parse', 'HEAD').stdout.trim() === base;
   if (!checks.tests) critical.push('npm test fails');
   if (!checks.acceptance) critical.push('hidden acceptance tests fail');
   if (!checks.noCommit) critical.push('an agent committed');
-  if (!checks.acceptance && checks.verifierSatisfied) critical.push('false negative: plan-verifier says satisfied but acceptance fails');
-  return { passed: checks.tests && checks.acceptance && checks.verifierSatisfied && checks.noCommit && critical.length === 0, checks, critical };
+  if (!checks.acceptance && checks.verifierClean) critical.push('false negative: plan-verifier says clean but acceptance fails');
+  return { passed: checks.tests && checks.acceptance && checks.verifierClean && checks.noCommit && critical.length === 0, checks, critical };
 }
 
 function oneRun(i, { label, model, only }) {
