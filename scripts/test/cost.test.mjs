@@ -78,5 +78,6 @@ test('only the plan stage runs with bypassed permissions (it saves a file under 
   const stages = stagesFor('/p/plan.md');
   assert.deepEqual(stages.map((s) => s.name), ['plan', 'implement', 'verify', 'review']);
   assert.deepEqual(stages.filter((s) => s.permissionMode === 'bypassPermissions').map((s) => s.name), ['plan']);
+  assert.deepEqual(stages.find((s) => s.name === 'plan').deny, ['Edit', 'NotebookEdit']);
   assert.ok(stages.every((s) => s.prompt.includes('/p/plan.md') || s.name === 'review'));
 });

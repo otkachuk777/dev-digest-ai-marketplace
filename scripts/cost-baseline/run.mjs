@@ -40,8 +40,11 @@ export function stagesFor(planPath) {
     {
       // Claude Code treats ~/.claude/ as sensitive: a plan file can only be saved after a human clicks "allow",
       // and no allow rule or acceptEdits mode changes that. In a headless run that click is simulated with
-      // bypassPermissions for this one stage; the plugin's own hooks (path guard, read-only Bash guard) still apply.
-      name: 'plan', tools: ['Write', 'Agent'], maxTurns: 40, permissionMode: 'bypassPermissions',
+      // bypassPermissions for this one stage. Residual risk, accepted: the stage's main session can use Bash (the planner
+      // needs it to read code and run spec-lint) and the read-only guard covers only the planner subagent. It runs a fixed
+      // prompt on a first-party fixture, in a throwaway clone, with a scrubbed environment (no tokens), and cannot edit files
+      // or reach the web.
+      name: 'plan', tools: ['Write', 'Agent'], maxTurns: 40, permissionMode: 'bypassPermissions', deny: ['Edit', 'NotebookEdit'],
       prompt: `Use the sdd-engineering:implementation-planner agent to plan specs/${SPEC_NAME}. Execution mode: single implementer. Test mode: inline. Write the plan to ${planPath}. Reply with the plan path and the agent's summary only.`,
     },
     {
@@ -61,7 +64,7 @@ export function stagesFor(planPath) {
 
 function runClaude(cwd, stage, model, plugins) {
   const args = ['-p', stage.prompt, '--output-format', 'stream-json', '--verbose', '--permission-mode', stage.permissionMode ?? 'default',
-    '--allowedTools', [...BASE_TOOLS, ...stage.tools].join(','), '--disallowedTools', 'WebFetch,WebSearch',
+    '--allowedTools', [...BASE_TOOLS, ...stage.tools].join(','), '--disallowedTools', ['WebFetch', 'WebSearch', ...(stage.deny ?? [])].join(','),
     '--max-turns', String(stage.maxTurns), '--model', model, ...plugins.flatMap((n) => ['--plugin-dir', join(ROOT, 'plugins', n)])];
   const t0 = Date.now();
   const proc = spawnSync('claude', args, { cwd, env: childEnv(model), encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
