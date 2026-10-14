@@ -114,6 +114,16 @@ export function checkRepo(root, { plugin: releasePlugin } = {}) {
     }
   }
 
+  // The read-only Bash guard is copied into each plugin that needs it; the copies must not drift.
+  const guards = plugins
+    .filter((p) => p.dir && existsSync(join(p.dir, 'scripts', 'readonly-bash-guard.sh')))
+    .map((p) => ({ name: p.name, text: readFileSync(join(p.dir, 'scripts', 'readonly-bash-guard.sh'), 'utf8') }));
+  for (const g of guards.slice(1)) {
+    if (g.text !== guards[0].text) {
+      errors.push(`readonly-bash-guard.sh in "${g.name}" differs from the copy in "${guards[0].name}"; keep them identical`);
+    }
+  }
+
   // Dependency cycles.
   const deps = (p) => (p?.manifest?.dependencies ?? [])
     .map((d) => normalizeDependency(d, marketplace.name)?.name).filter(Boolean);
