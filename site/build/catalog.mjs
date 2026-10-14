@@ -31,6 +31,7 @@ export function buildCatalog({ repo, latest, stable, releases }) {
           tags: a.tags,
           tokens,
           declared: { tools: isPlugin ? allTools : a.tools, hooks: plugin.hooks, mcp: plugin.mcp },
+          dependencies: isPlugin ? (plugin.dependencies ?? []) : [],
           path: a.path,
           ref: ch.channel === 'latest' ? 'main' : (plugin.tag ?? 'stable'),
           body: file,

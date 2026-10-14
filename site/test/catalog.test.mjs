@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createFixtureRepo, FIXTURE_REPO } from '../dev/make-fixture-repo.mjs';
 import { loadLatest, loadStable, collectReleases } from '../build/sources.mjs';
 import { buildCatalog, bodyFile } from '../build/catalog.mjs';
 import { assertValidCatalog } from '../build/schema.mjs';
+import { scanPlugin } from '../build/scan.mjs';
 
 function fixtureCatalog(opts) {
   const { root, cleanup } = createFixtureRepo(opts);
@@ -68,4 +69,29 @@ test('duplicate ids fail the build', () => {
 
 test('schema rejects a malformed catalog', () => {
   assert.throws(() => assertValidCatalog({ schema: 1 }), /catalog.json is invalid/);
+});
+
+test('plugin records carry dependencies; other artifacts carry none', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'deps-'));
+  try {
+    mkdirSync(join(dir, '.claude-plugin'), { recursive: true });
+    mkdirSync(join(dir, 'skills', 's'), { recursive: true });
+    writeFileSync(join(dir, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'app', version: '1.0.0', description: 'd', dependencies: [{ name: 'base', version: '^1.0.0' }] }));
+    writeFileSync(join(dir, 'skills', 's', 'SKILL.md'), '---\nname: s\ndescription: a skill\n---\nbody\n');
+    const scan = scanPlugin({ dir, pluginPath: 'plugins/app', entryName: 'app' });
+    const plugin = { ...scan, indexed: true, validation: { passed: 6, total: 6, failures: [] }, lastChange: null, tag: null };
+    const { catalog } = buildCatalog({ repo: 'o/r', latest: { channel: 'latest', marketplace: 'm', ref: 'main', plugins: [plugin] }, stable: null, releases: [] });
+    assertValidCatalog(catalog);
+    const byType = Object.fromEntries(catalog.artifacts.map((a) => [a.type, a.channels.latest.dependencies]));
+    assert.deepEqual(byType.plugin, [{ name: 'base', range: '^1.0.0', marketplace: null }]);
+    assert.deepEqual(byType.skill, []);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('the schema rejects a record without dependencies', () => {
+  const { catalog } = fixtureCatalog();
+  assertValidCatalog(catalog);
+  const broken = structuredClone(catalog);
+  delete broken.artifacts[0].channels.latest.dependencies;
+  assert.throws(() => assertValidCatalog(broken));
 });

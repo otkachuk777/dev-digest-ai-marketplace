@@ -13,7 +13,7 @@ export function lastChangeDate(repoRoot, ref, path) {
 function indexed(scan, extra) {
   return {
     name: scan.name, version: scan.version, description: scan.description, keywords: scan.keywords, readme: scan.readme,
-    path: scan.path, artifacts: scan.artifacts, hooks: scan.hooks, mcp: scan.mcp, indexed: true,
+    path: scan.path, artifacts: scan.artifacts, hooks: scan.hooks, mcp: scan.mcp, dependencies: scan.dependencies, indexed: true,
     validation: evaluate(scan), ...extra,
   };
 }
@@ -24,7 +24,7 @@ function unindexed(entry) {
   return {
     name: entry.name, version: entry.version ?? null, description: entry.description ?? '', keywords, readme: '', path: '',
     artifacts: [{ type: 'plugin', slug: entry.name, name: entry.name, description: entry.description ?? '', tags: keywords, body: '', path: '.claude-plugin/marketplace.json', tools: [], tokens: null }],
-    hooks: [], mcp: [], indexed: false, validation: null, lastChange: null, tag: null,
+    hooks: [], mcp: [], dependencies: [], indexed: false, validation: null, lastChange: null, tag: null,
   };
 }
 

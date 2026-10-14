@@ -115,6 +115,21 @@ const fullTokens = (name, description, body) => ({
   onInvoke: estimateTokens(body),
 });
 
+/** `dependencies` of plugin.json: strings ("name", "name@marketplace") or { name, version, marketplace }. */
+export function normalizeDependencies(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const d of raw) {
+    if (typeof d === 'string') {
+      const [name, marketplace] = d.split('@');
+      if (name) out.push({ name, range: '*', marketplace: marketplace || null });
+    } else if (d && typeof d === 'object' && typeof d.name === 'string' && d.name) {
+      out.push({ name: d.name, range: typeof d.version === 'string' ? d.version : '*', marketplace: typeof d.marketplace === 'string' ? d.marketplace : null });
+    }
+  }
+  return out;
+}
+
 export function scanPlugin({ dir, pluginPath, entryName }) {
   const problems = [];
   const manifestPath = `${pluginPath}/.claude-plugin/plugin.json`;
@@ -221,5 +236,5 @@ export function scanPlugin({ dir, pluginPath, entryName }) {
     taken.set(key, a.path);
   }
 
-  return { name, version, description: manifest?.description ?? '', keywords, readme, changelog, path: pluginPath, artifacts, hooks, mcp, problems };
+  return { name, version, description: manifest?.description ?? '', keywords, readme, changelog, path: pluginPath, artifacts, hooks, mcp, dependencies: normalizeDependencies(manifest?.dependencies), problems };
 }

@@ -52,6 +52,19 @@ export function installHtml({ steps, plugin, ownerNote }) {
   return `<h2>Install</h2>${note}<pre class="sn" id="snippet" tabindex="0">${pre}</pre><div class="copyrow"><button class="btn btn-p" type="button" id="copy">Copy snippet</button><span id="copy-status" class="ok" role="status" aria-live="polite"></span></div>`;
 }
 
+/** "Depends on" / "Required by" for a plugin page. `requiredBy` is a list of plugin names. */
+export function dependenciesHtml({ dependencies = [], requiredBy = [], channel }) {
+  if (!dependencies.length && !requiredBy.length) return '';
+  const link = (name) => `<a class="mono" href="${esc(detailHref(`${name}/plugin/${name}`, channel))}">${esc(name)}</a>`;
+  const deps = dependencies.length
+    ? `<h3>Depends on</h3><p class="hint">Installed automatically with this plugin.</p><ul class="deps">${dependencies.map((d) => `<li>${d.marketplace ? `<span class="mono">${esc(d.name)}</span> <span class="muted small">from ${esc(d.marketplace)}</span>` : link(d.name)} <span class="mono muted small">${esc(d.range)}</span></li>`).join('')}</ul>`
+    : '';
+  const used = requiredBy.length
+    ? `<h3>Required by</h3><p class="hint">A new major version here affects these plugins.</p><ul class="deps">${requiredBy.map((n) => `<li>${link(n)}</li>`).join('')}</ul>`
+    : '';
+  return `<h2>Dependencies</h2>${deps}${used}`;
+}
+
 export function tokensHtml(tokens) {
   if (!tokens) return '<h2>Token cost</h2><p class="hint">Token cost is not available for this artifact type.</p><p class="foot">Estimate = characters / 4. A real tokenizer may differ by 10-20%.</p>';
   const n = (v) => `≈${v.toLocaleString('en-US')}`;

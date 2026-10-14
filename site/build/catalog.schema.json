@@ -54,7 +54,7 @@
     "record": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["version", "description", "tags", "tokens", "declared", "path", "ref", "body", "validation", "lastChange", "indexed"],
+      "required": ["version", "description", "tags", "tokens", "declared", "dependencies", "path", "ref", "body", "validation", "lastChange", "indexed"],
       "properties": {
         "version": { "type": ["string", "null"] },
         "description": { "type": "string" },
@@ -75,6 +75,7 @@
             "mcp": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["name", "command"], "properties": { "name": { "type": "string" }, "command": { "type": "string" } } } }
           }
         },
+        "dependencies": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["name", "range", "marketplace"], "properties": { "name": { "type": "string" }, "range": { "type": "string" }, "marketplace": { "type": ["string", "null"] } } } },
         "path": { "type": "string" },
         "ref": { "type": "string" },
         "body": { "type": ["string", "null"] },

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installHtml, tokensHtml, securityHtml, sourceUrl, detailHref } from '../src/ui.js';
+import { installHtml, tokensHtml, securityHtml, dependenciesHtml, sourceUrl, detailHref } from '../src/ui.js';
 
 const record = {
   version: '1.1.0', description: 'd', tags: [], tokens: { always: 42, onInvoke: 1180 }, path: 'plugins/p/skills/x/SKILL.md', ref: 'main', body: null,
@@ -57,4 +57,24 @@ test('sourceUrl encodes ref and path segments', () => {
 test('sourceUrl points at the pinned ref', () => {
   assert.equal(sourceUrl('o/r', record), 'https://github.com/o/r/blob/main/plugins/p/skills/x/SKILL.md');
   assert.equal(sourceUrl('o/r', { ...record, ref: 'p--v1.0.0' }), 'https://github.com/o/r/blob/p--v1.0.0/plugins/p/skills/x/SKILL.md');
+});
+
+test('dependenciesHtml links same-marketplace plugins and escapes hostile text', () => {
+  const html = dependenciesHtml({
+    channel: 'latest',
+    dependencies: [{ name: 'base', range: '^1.0.0', marketplace: null }, { name: '<img src=x>', range: '*', marketplace: 'o"ther' }],
+    requiredBy: ['app'],
+  });
+  assert.match(html, /Depends on/);
+  assert.match(html, /href="artifact\.html\?id=base%2Fplugin%2Fbase"/);
+  assert.match(html, /\^1\.0\.0/);
+  assert.match(html, /Required by/);
+  assert.match(html, /href="artifact\.html\?id=app%2Fplugin%2Fapp"/);
+  assert.doesNotMatch(html, /<img/);
+  assert.match(html, /from o&quot;ther/);
+  assert.doesNotMatch(html, /href="[^"]*img/);
+});
+
+test('dependenciesHtml renders nothing for a plugin with no dependency relations', () => {
+  assert.equal(dependenciesHtml({ dependencies: [], requiredBy: [], channel: 'latest' }), '');
 });
