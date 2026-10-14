@@ -1,0 +1,19 @@
+name: Request a skill
+description: Ask for a skill, agent, command or plugin the marketplace does not have yet.
+title: "Request: "
+labels: ["request"]
+body:
+  - type: input
+    id: query
+    attributes:
+      label: What were you searching for?
+      description: The words you typed into the catalog.
+    validations:
+      required: false
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need it to do?
+      description: The task, the inputs and what a good result looks like.
+    validations:
+      required: true

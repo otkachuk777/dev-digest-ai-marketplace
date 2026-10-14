@@ -1,0 +1,73 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *'
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'plugins/**'
+      - '.claude-plugin/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Always build from main: the "stable" branch holds only marketplace.json and no site files or workflow,
+          # so a push to it cannot trigger this workflow. origin/stable is read via git (fetch-depth 0).
+          # After publishing stable, refresh with `gh workflow run pages.yml` or wait for the daily schedule.
+          ref: ${{ github.event_name == 'pull_request' && github.sha || 'main' }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install
+        working-directory: site
+        run: npm ci
+
+      - name: Test
+        working-directory: site
+        run: npm test
+
+      - name: Build catalog
+        working-directory: site
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -23,12 +23,19 @@ Start a new session or run `/reload-plugins` afterwards.
 .claude-plugin/marketplace.json   marketplace catalog (name, owner, plugin entries)
 plugins/<name>/                   one directory per plugin, each with .claude-plugin/plugin.json
 docs/                             guidelines, security and release documentation
-.github/workflows/                CI (validation)
+.github/workflows/                CI (validation) and the Pages deploy
+site/                             catalog site (search UI and build)
 ```
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) and [docs/SECURITY.md](docs/SECURITY.md).
+
+## Catalog
+
+Search the marketplace in the browser: https://otkachuk777.github.io/dev-digest-ai-marketplace/
+
+The site lives in [`site/`](site/README.md), is built from `main` (latest) and from the release tags pinned in the `stable` branch, and is deployed by `.github/workflows/pages.yml`.
 
 ## License
 

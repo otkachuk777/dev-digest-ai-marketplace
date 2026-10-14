@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Artifact detail</title>
+<meta name="description" content="Install snippet, token cost and security details for an artifact in the dev-digest AI marketplace.">
+<link rel="stylesheet" href="./style.css">
+<link rel="alternate" type="application/atom+xml" title="Marketplace releases" href="./feed.xml">
+</head>
+<body>
+<div class="page">
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="./">
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="9" height="9" rx="2"/><rect x="16" y="3" width="9" height="9" rx="2"/><rect x="3" y="16" width="9" height="9" rx="2"/><path d="M20.5 16v9M16 20.5h9"/></svg>
+dev-digest <span class="mono muted brand-sub">marketplace</span>
+</a>
+<div class="header-actions">
+<div class="seg" id="channel" role="group" aria-label="Channel" hidden>
+<button type="button" data-channel="latest" aria-pressed="true">latest</button><button type="button" data-channel="stable" aria-pressed="false">stable</button>
+</div>
+<a class="btn btn-p" id="request" href="#">Request a skill</a>
+</div>
+</div>
+</header>
+
+<main class="wrap detail" id="main"><p class="muted">Loading…</p></main>
+<noscript><section class="wrap"><p>The catalog needs JavaScript to show this page. <a href="./">Back to the catalog</a>.</p></section></noscript>
+
+<footer class="site-footer">
+<div class="wrap">
+<span>≈ = characters / 4. A real tokenizer may differ by 10-20%.</span>
+<span class="mono" id="footer-build"></span>
+<span class="end">Declared in plugin files, not independently audited.</span>
+</div>
+</footer>
+</div>
+<div class="toast" id="status" role="status" aria-live="polite"></div>
+<script type="module" src="./artifact.js"></script>
+</body>
+</html>

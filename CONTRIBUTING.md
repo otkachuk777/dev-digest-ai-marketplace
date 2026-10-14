@@ -10,6 +10,7 @@
    claude plugin validate ./plugins/<name>
    node scripts/check-release.mjs
    node --test "scripts/test/*.test.mjs"
+   (cd site && npm ci && npm test)  # when you change site/
    ```
 4. Open a pull request. CI runs the same validation and must be green.
 5. A code owner reviews and merges. Direct pushes to `main` are not allowed.
