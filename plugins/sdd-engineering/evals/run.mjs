@@ -28,7 +28,7 @@ function childEnv() {
   return Object.fromEntries(Object.entries(process.env).filter(([k]) => keep.test(k)));
 }
 
-const CHECKS = ['outputMatches', 'outputNotMatches', 'toolResultMatches', 'toolResultNotMatches', 'fileExists', 'fileAbsent', 'noNewFilesUnder', 'noNewCommits', 'toolUsed', 'toolNotUsed'];
+const CHECKS = ['outputMatches', 'outputNotMatches', 'toolResultMatches', 'toolResultNotMatches', 'fileExists', 'fileAbsent', 'fileMatches', 'noNewFilesUnder', 'noNewCommits', 'toolUsed', 'toolNotUsed'];
 
 const cases = JSON.parse(readFileSync(join(HERE, 'cases.json'), 'utf8')).cases;
 
@@ -94,8 +94,8 @@ function parseStream(stdout) {
 }
 
 function regex(src) {
-  const flags = src.startsWith('(?i)') ? 'i' : '';
-  return new RegExp(src.replace(/^\(\?i\)/, ''), flags);
+  const m = /^\(\?([im]+)\)/.exec(src);
+  return new RegExp(m ? src.slice(m[0].length) : src, m ? m[1] : '');
 }
 
 function grade(c, repo, base, run) {
@@ -109,7 +109,11 @@ function grade(c, repo, base, run) {
     else if ('toolResultNotMatches' in e) { label = `no tool result matches /${e.toolResultNotMatches}/`; pass = !regex(e.toolResultNotMatches).test(run.results); }
     else if ('fileExists' in e) { label = `file exists: ${e.fileExists}`; pass = existsSync(join(repo, e.fileExists)); }
     else if ('fileAbsent' in e) { label = `file absent: ${e.fileAbsent}`; pass = !existsSync(join(repo, e.fileAbsent)); }
-    else if ('noNewFilesUnder' in e) {
+    else if ('fileMatches' in e) {
+      const { under, pattern } = e.fileMatches;
+      label = `a new file under ${under} matches /${pattern}/`;
+      pass = created.some((f) => !c.fixture[f] && f.startsWith(`${under}/`) && regex(pattern).test(readFileSync(join(repo, f), 'utf8')));
+    } else if ('noNewFilesUnder' in e) {
       label = `no new files under ${e.noNewFilesUnder.join(', ')}`;
       pass = !created.some((f) => !c.fixture[f] && e.noNewFilesUnder.some((d) => f.startsWith(`${d}/`)));
     } else if ('noNewCommits' in e) { label = 'no new commits'; pass = git(repo, 'rev-parse', 'HEAD').out === base; }
