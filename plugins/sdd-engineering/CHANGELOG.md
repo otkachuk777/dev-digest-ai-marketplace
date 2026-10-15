@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- `spec-creator` no longer finishes a spec while a mandatory requirement has no acceptance criterion. Every "must" / "shall", Goal, User-story outcome and stated limit needs an AC that tests it; a requirement that cannot be made testable stays a blocking open question (no invented number), the spec stays `draft` and the report says `Not finished`. The final report now lists `Requirements: <covered>/<total> covered by an AC`, and the self-check has an eleventh item for it.
+- Evals: two new cases for this behaviour (nine in total; the seven existing cases are unchanged), and a `fileMatches` check in the eval runner.
+
 ## 1.0.0
 
 - Initial release of the Spec Driven Development workflow: `spec-creator`, `implementation-planner`, `implementer`, `plan-verifier`, and the skills `run-plan`, `ears-spec`, `workflow-retro`, `engineering-insights`.

@@ -25,6 +25,70 @@
       ]
     },
     {
+      "id": "spec-creator-covers-every-mandatory-requirement",
+      "kind": "positive",
+      "intent": "Round 2 of spec-creator writes a spec in which every requirement the user stated as mandatory has an acceptance criterion, and reports the coverage (new in 1.1.0).",
+      "fixture": {
+        "README.md": "# demo\n",
+        "api/package.json": "{}\n",
+        "api/src/findings.ts": "export const findings: { id: number; project: string }[] = [];\n"
+      },
+      "prompt": "Use the sdd-engineering:spec-creator agent. This is round 2 (write the spec); there are no open questions and no design sources. Feature: export the findings of one project to a CSV file. The user's mandatory requirements, all answered and final: (R1) the export contains only the findings of the selected project; (R2) the file name contains the export date; (R3) when the project has more than 5000 findings the export is refused with an error message and no file is produced. Write the spec as a draft in specs/. Reply with the agent's final report only.",
+      "maxTurns": 20,
+      "expect": [
+        {
+          "fileMatches": {
+            "under": "specs",
+            "pattern": "(?im)^- \\*\\*AC-\\d+:\\*\\*.*\\bproject\\b"
+          }
+        },
+        {
+          "fileMatches": {
+            "under": "specs",
+            "pattern": "(?im)^- \\*\\*AC-\\d+:\\*\\*.*\\bdate\\b"
+          }
+        },
+        {
+          "fileMatches": {
+            "under": "specs",
+            "pattern": "(?im)^- \\*\\*AC-\\d+:\\*\\*.*\\b5000\\b"
+          }
+        },
+        {
+          "toolResultMatches": "Requirements: 3/3 covered"
+        }
+      ]
+    },
+    {
+      "id": "spec-creator-does-not-finish-with-an-untestable-requirement",
+      "kind": "positive",
+      "intent": "A mandatory requirement that cannot be tested (no number, no outcome) is not turned into an invented criterion: the spec stays a draft, the requirement is a blocking open question and the report says Not finished (new in 1.1.0).",
+      "fixture": {
+        "README.md": "# demo\n",
+        "api/package.json": "{}\n",
+        "api/src/findings.ts": "export const findings: { id: number; project: string }[] = [];\n"
+      },
+      "prompt": "Use the sdd-engineering:spec-creator agent. This is round 2 (write the spec); there are no design sources and the user is not available for more questions. Feature: export the findings of one project to a CSV file. The user's mandatory requirements, final: (R1) the export contains only the findings of the selected project; (R2) the export must be fast and feel instant. The user gave no number and no other measure for R2 and cannot be asked. Write the spec in specs/. Reply with the agent's final report only.",
+      "maxTurns": 20,
+      "expect": [
+        {
+          "fileMatches": {
+            "under": "specs",
+            "pattern": "(?im)^- \\*\\*AC-\\d+:\\*\\*.*\\bproject\\b"
+          }
+        },
+        {
+          "fileMatches": {
+            "under": "specs",
+            "pattern": "(?i)## Open questions[\\s\\S]*\\b(fast|instant)\\b"
+          }
+        },
+        {
+          "toolResultMatches": "(?i)not finished"
+        }
+      ]
+    },
+    {
       "id": "planner-refuses-a-draft-spec",
       "kind": "positive",
       "intent": "implementation-planner does not plan from a draft spec; it asks for approval.",

@@ -1,10 +1,10 @@
 # Behaviour evals
 
-Seven cases that check what the SDD workflow does, not just that its files are valid.
+Nine cases that check what the SDD workflow does, not just that its files are valid.
 
 | Kind | Cases |
 |---|---|
-| Positive | `spec-creator` asks questions and writes nothing in round 1 · `implementation-planner` refuses a draft spec · `researcher` leaves the repository unchanged on a write request · `test-writer` may write a test but not a production file · `run-plan` stops when there is no approved spec |
+| Positive | `spec-creator` asks questions and writes nothing in round 1 · `spec-creator` gives every mandatory requirement an acceptance criterion and reports the coverage (1.1.0) · `spec-creator` does not finish a spec with an untestable mandatory requirement (1.1.0) · `implementation-planner` refuses a draft spec · `researcher` leaves the repository unchanged on a write request · `test-writer` may write a test but not a production file · `run-plan` stops when there is no approved spec |
 | Negative | An ordinary edit request starts no SDD skill or agent · A plain question triggers no retrospective or insights write |
 
 Each case builds a throwaway git repository from its fixture, runs `claude -p` with all five marketplace plugins loaded (`--plugin-dir`), and grades deterministic signals only: files, tool calls, and tool results. The main session answers in the user's language, so cases prefer tool results (agent reports and hook messages are English) over free text.
@@ -27,4 +27,4 @@ Running the cases calls the model and costs tokens, so CI only validates the fil
 
 ## Adding a case
 
-Add an object to `cases.json` with an `id`, `kind` (`positive` or `negative`), `fixture` (path → file content), `prompt`, optional `maxTurns`, and `expect` (each item has exactly one check: `outputMatches`, `outputNotMatches`, `toolResultMatches`, `toolResultNotMatches`, `fileExists`, `fileAbsent`, `noNewFilesUnder`, `noNewCommits`, `toolUsed`, `toolNotUsed`). A negative case must assert `toolNotUsed`.
+Add an object to `cases.json` with an `id`, `kind` (`positive` or `negative`), `fixture` (path → file content), `prompt`, optional `maxTurns`, and `expect` (each item has exactly one check: `outputMatches`, `outputNotMatches`, `toolResultMatches`, `toolResultNotMatches`, `fileExists`, `fileAbsent`, `noNewFilesUnder`, `noNewCommits`, `fileMatches` (`{under, pattern}`: a new file under a directory whose content matches), `toolUsed`, `toolNotUsed`). A negative case must assert `toolNotUsed`.
