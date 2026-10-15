@@ -1,0 +1,315 @@
+{
+  "label": "baseline",
+  "pluginsSha": "50d9434",
+  "sandboxSha": "1334018",
+  "model": "sonnet",
+  "createdAt": "2026-10-14T18:48:56.937Z",
+  "runs": [
+    {
+      "stages": [
+        {
+          "name": "plan",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.3524173,
+          "durationMs": 52099,
+          "turns": 1,
+          "inputTokens": 14,
+          "outputTokens": 4610,
+          "cacheWriteTokens": 52899,
+          "cacheReadTokens": 224993,
+          "toolCalls": 5,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 8596
+        },
+        {
+          "name": "implement",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.22205550000000002,
+          "durationMs": 29625,
+          "turns": 3,
+          "inputTokens": 20,
+          "outputTokens": 2447,
+          "cacheWriteTokens": 49835,
+          "cacheReadTokens": 288655,
+          "toolCalls": 11,
+          "permissionDenials": 1,
+          "hookDenials": 0,
+          "reportedDurationMs": 27694
+        },
+        {
+          "name": "verify",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.15807110000000002,
+          "durationMs": 20923,
+          "turns": 2,
+          "inputTokens": 8,
+          "outputTokens": 1978,
+          "cacheWriteTokens": 35819,
+          "cacheReadTokens": 87001,
+          "toolCalls": 4,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 19074
+        },
+        {
+          "name": "review",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.34951030000000005,
+          "durationMs": 36010,
+          "turns": 1,
+          "inputTokens": 22,
+          "outputTokens": 3634,
+          "cacheWriteTokens": 58783,
+          "cacheReadTokens": 307536,
+          "toolCalls": 7,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 2589
+        }
+      ],
+      "total": {
+        "costUsd": 1.0820542,
+        "durationMs": 138657,
+        "turns": 7,
+        "inputTokens": 64,
+        "outputTokens": 12669,
+        "cacheWriteTokens": 197336,
+        "cacheReadTokens": 908185,
+        "toolCalls": 27,
+        "hookDenials": 0,
+        "permissionDenials": 1
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "tests": true,
+          "acceptance": true,
+          "verifierClean": true,
+          "notVerifiable": 0,
+          "noCommit": true
+        },
+        "critical": []
+      }
+    },
+    {
+      "stages": [
+        {
+          "name": "plan",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.360365,
+          "durationMs": 50847,
+          "turns": 1,
+          "inputTokens": 14,
+          "outputTokens": 4927,
+          "cacheWriteTokens": 53291,
+          "cacheReadTokens": 225237,
+          "toolCalls": 4,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 8548
+        },
+        {
+          "name": "implement",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.2335546,
+          "durationMs": 32940,
+          "turns": 3,
+          "inputTokens": 20,
+          "outputTokens": 3193,
+          "cacheWriteTokens": 51142,
+          "cacheReadTokens": 291211,
+          "toolCalls": 11,
+          "permissionDenials": 1,
+          "hookDenials": 0,
+          "reportedDurationMs": 30751
+        },
+        {
+          "name": "verify",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.1665268,
+          "durationMs": 24787,
+          "turns": 2,
+          "inputTokens": 8,
+          "outputTokens": 2593,
+          "cacheWriteTokens": 36485,
+          "cacheReadTokens": 87003,
+          "toolCalls": 4,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 22862
+        },
+        {
+          "name": "review",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.3232301,
+          "durationMs": 31019,
+          "turns": 1,
+          "inputTokens": 18,
+          "outputTokens": 3050,
+          "cacheWriteTokens": 57992,
+          "cacheReadTokens": 243725,
+          "toolCalls": 6,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 3159
+        }
+      ],
+      "total": {
+        "costUsd": 1.0836765,
+        "durationMs": 139593,
+        "turns": 7,
+        "inputTokens": 60,
+        "outputTokens": 13763,
+        "cacheWriteTokens": 198910,
+        "cacheReadTokens": 847176,
+        "toolCalls": 25,
+        "hookDenials": 0,
+        "permissionDenials": 1
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "tests": true,
+          "acceptance": true,
+          "verifierClean": true,
+          "notVerifiable": 1,
+          "noCommit": true
+        },
+        "critical": []
+      }
+    },
+    {
+      "stages": [
+        {
+          "name": "plan",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.3220107,
+          "durationMs": 49505,
+          "turns": 2,
+          "inputTokens": 10,
+          "outputTokens": 4122,
+          "cacheWriteTokens": 50766,
+          "cacheReadTokens": 141807,
+          "toolCalls": 3,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 47621
+        },
+        {
+          "name": "implement",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.22371679999999997,
+          "durationMs": 30590,
+          "turns": 3,
+          "inputTokens": 18,
+          "outputTokens": 2781,
+          "cacheWriteTokens": 50041,
+          "cacheReadTokens": 259438,
+          "toolCalls": 10,
+          "permissionDenials": 1,
+          "hookDenials": 0,
+          "reportedDurationMs": 28481
+        },
+        {
+          "name": "verify",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.1629979,
+          "durationMs": 23432,
+          "turns": 2,
+          "inputTokens": 8,
+          "outputTokens": 2444,
+          "cacheWriteTokens": 35775,
+          "cacheReadTokens": 86989,
+          "toolCalls": 4,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 21414
+        },
+        {
+          "name": "review",
+          "ok": true,
+          "subtype": "success",
+          "error": "",
+          "costUsd": 0.34086089999999997,
+          "durationMs": 33278,
+          "turns": 1,
+          "inputTokens": 20,
+          "outputTokens": 3694,
+          "cacheWriteTokens": 58104,
+          "cacheReadTokens": 274775,
+          "toolCalls": 7,
+          "permissionDenials": 0,
+          "hookDenials": 0,
+          "reportedDurationMs": 4091
+        }
+      ],
+      "total": {
+        "costUsd": 1.0495862999999999,
+        "durationMs": 136805,
+        "turns": 8,
+        "inputTokens": 56,
+        "outputTokens": 13041,
+        "cacheWriteTokens": 194686,
+        "cacheReadTokens": 763009,
+        "toolCalls": 24,
+        "hookDenials": 0,
+        "permissionDenials": 1
+      },
+      "gate": {
+        "passed": false,
+        "checks": {
+          "tests": true,
+          "acceptance": true,
+          "verifierClean": false,
+          "notVerifiable": 0,
+          "noCommit": true
+        },
+        "critical": []
+      }
+    }
+  ],
+  "summary": {
+    "runs": 3,
+    "passed": 2,
+    "passRate": 0.6666666666666666,
+    "criticalFailures": 0,
+    "median": {
+      "costUsd": 1.0820542,
+      "durationMs": 138657,
+      "turns": 7,
+      "inputTokens": 60,
+      "outputTokens": 13041,
+      "cacheWriteTokens": 197336,
+      "cacheReadTokens": 847176,
+      "toolCalls": 25,
+      "hookDenials": 0,
+      "permissionDenials": 1
+    },
+    "costPerSuccessfulWorkflow": 1.6076584999999999,
+    "medianCostOfSuccessful": 1.08286535,
+    "spreadCostUsd": 0.03409020000000007
+  }
+}
