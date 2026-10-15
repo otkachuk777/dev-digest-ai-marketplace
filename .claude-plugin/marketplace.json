@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "dev-digest-ai-marketplace-stable",
+  "description": "Pinned, verified releases of dev-digest-ai-marketplace. Used for rollback.",
+  "owner": {
+    "name": "AI Engineering"
+  },
+  "plugins": [
+    {
+      "name": "engineering-paved-path",
+      "description": "Best-practice skills for a TypeScript web stack: React, Fastify, Drizzle, Postgres, Zod, security, and architecture placement rules.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
+        "path": "plugins/engineering-paved-path",
+        "ref": "engineering-paved-path--v1.0.0",
+        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+      }
+    },
+    {
+      "name": "research-tools",
+      "description": "Read-only research and option-comparison agents with a Bash guard that keeps them from changing anything.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
+        "path": "plugins/research-tools",
+        "ref": "research-tools--v1.0.0",
+        "sha": "e6a0b2edcda1038d9125b7e94bc83aa335aa1d96"
+      }
+    },
+    {
+      "name": "architecture-review",
+      "description": "Read-only architecture reviewer that learns the repository's own architecture docs and checks, runs them first, then judges boundaries and placement.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
+        "path": "plugins/architecture-review",
+        "ref": "architecture-review--v1.0.0",
+        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+      }
+    },
+    {
+      "name": "quality-review",
+      "description": "Code review, security review, test writing and documentation agents, each confined by hooks to what it may touch.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
+        "path": "plugins/quality-review",
+        "ref": "quality-review--v1.0.0",
+        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+      }
+    },
+    {
+      "name": "sdd-engineering",
+      "description": "Spec Driven Development workflow: spec, plan, implement, verify and review with confined agents, plus a retrospective and an insights log.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
+        "path": "plugins/sdd-engineering",
+        "ref": "sdd-engineering--v1.0.0",
+        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+      }
+    }
+  ]
+}
