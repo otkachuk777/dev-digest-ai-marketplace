@@ -75,6 +75,35 @@ The agent prompts that actually run in this scenario are the planner (about 4.9k
 
 Cutting the loaded prompts by a third would save about $0.03 per run (about 3%), which is the size of the run-to-run spread. **With three runs a saving of that size cannot be told apart from noise.** Detecting it would take roughly ten runs per side (about $11 each). The experiment will state this plainly if the result is within the spread, as the lab asks.
 
+## Optimization: load the planner's rare modes on demand
+
+**Change.** The text for parallel mode, test-first mode, the fix-plan addendum and the brainstorm procedure moved, word for word, from the `implementation-planner` prompt to `plugins/sdd-engineering/skills/run-plan/references/planner-modes.md`. The planner reads that file only when a task needs one of those cases. The model, routing and behaviour on the default path (single implementer, inline tests, no open technical fork) are unchanged.
+
+**Mechanical effect (certain).** The planner prompt went from 4,857 to 3,969 tokens (-18%). The plan stage's context tokens went from 277.9k to 238.7k (-14%).
+
+| | Baseline | After | Change |
+|---|---|---|---|
+| Plugins at | `50d9434` | `3b89e80` | |
+| Runs / passed (strict gate) | 3 / 2 | 3 / 2 | same |
+| Acceptance tests green | 3 / 3 | 3 / 3 | same |
+| Critical failures | 0 | 0 | same |
+| Median cost per run | $1.08 | $1.11 | +$0.03 (+2.3%) |
+| Run costs | 1.08, 1.08, 1.05 | 1.35, 1.01, 1.11 | |
+| Spread (max - min) | $0.03 | $0.34 | |
+| Median latency | 139 s | 125 s | -13 s |
+| Plan stage median cost | $0.35 | $0.34 | -$0.01 |
+| Median cache write tokens | 197.3k | 198.6k | +1.3k |
+
+**Verdict: the cost and latency difference is within the noise. This optimization does not pass the experiment's bar** ("cost and latency really lower"). The quality gate did not get worse: the same pass count, no new critical failure, no false negative, and the same run 3 verifier-wording failure as before (see above).
+
+Why a real 14% cut in the plan stage's context does not show in the bill:
+
+- The planner prompt is a small part of what a stage pays for. A bare `claude -p` process costs about $0.10 regardless of the plugins, and the plan stage's work (reading the spec and code, writing the plan) dominates the rest.
+- One "after" run cost $1.35 (its plan stage alone $0.47) against $1.01 and $1.11 for the others. A single planner run varies by more than the whole saving, so three runs per side cannot resolve a change of about 1 to 3%.
+- To detect a saving of that size would take about ten runs per side (roughly $11 each).
+
+**What to do with it.** The change is safe on the measured default path and shortens the prompt, so it can ship, but the claim is only "smaller prompt, no measurable cost change". It has not been exercised on the paths it moved: parallel, test-first, brainstorm and fix-plan now depend on the planner reading the reference file, which only a run of those modes can confirm. A larger saving needs a different lever (fewer separate processes and subagent contexts), which changes the workflow and is out of scope for this experiment.
+
 ## Known friction in the scenario
 
 - **One permission refusal per run, always in `implement`:** `npm test 2>&1 | grep ...` is rewritten by the user's RTK hook to `rtk grep`, which is not in the tool allowlist. It is the same in every run and the implementer recovers, so it does not bias a before/after comparison. The allowlist is intentionally left unchanged for the "after" runs.
