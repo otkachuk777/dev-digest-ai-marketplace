@@ -30,7 +30,7 @@ expect "evaluate is denied"                    "$(run $C mcp__plugin_playwright_
 expect "screenshot name must be one segment"   "$(run $C mcp__plugin_playwright_playwright__browser_take_screenshot '' ../x.png)" deny
 expect "plain screenshot name is allowed"      "$(run $C mcp__plugin_playwright_playwright__browser_take_screenshot '' home.png)" allow
 
-NOJQ=$(mktemp -d); for t in grep sed head; do ln -s "$(command -v $t)" "$NOJQ/$t"; done
+NOJQ=$(mktemp -d); for t in grep sed head; do printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v $t)" > "$NOJQ/$t"; chmod +x "$NOJQ/$t"; done
 out=$(printf '{"agent_type":"spec-creator","tool_name":"x"}' | env PATH="$NOJQ" /bin/bash "$G" spec-creator 2>&1); code=$?
 if [ $code -eq 2 ] && [[ "$out" == *"brew install jq"* ]]; then echo "ok   no-jq blocks a guarded agent (exit 2)"; else echo "FAIL no-jq guarded: exit $code"; FAIL=1; fi
 out=$(printf '{"tool_name":"x"}' | env PATH="$NOJQ" /bin/bash "$G" spec-creator 2>&1); code=$?

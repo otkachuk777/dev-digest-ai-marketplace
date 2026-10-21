@@ -1,0 +1,18 @@
+# Check out text files with LF on every platform, whatever core.autocrlf says.
+# Hook scripts with CRLF fail on bash outside Git for Windows (WSL, Cygwin, a copied cache) and a
+# hook that crashes does not block the tool call, so a CRLF guard silently stops guarding.
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

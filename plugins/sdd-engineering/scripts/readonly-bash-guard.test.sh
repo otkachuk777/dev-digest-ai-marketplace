@@ -54,6 +54,26 @@ check "git for-each-ref --format='%(refname:short)' refs/heads refs/remotes" all
 check "npm audit --json | grep fix" allow
 check "cd app && pnpm -C . test" allow
 check "cd app && pnpm vitest run -t add" allow
+check "cd backend && go test ./..." allow
+check "go test -run 'TestAC3' ./internal/scan -count=1" allow
+check "go vet ./..." allow
+check "go build ./..." allow
+check "go build -o /dev/null ./cmd/api" allow
+check "go list -m all" allow
+check "go mod graph" allow
+check "go mod why github.com/x/y" allow
+check "go mod verify" allow
+check "gofmt -l ." allow
+check "golangci-lint run ./..." allow
+check "task test" allow
+check "make test" allow
+check "yarn test" allow
+check "cd api && uv run pytest" allow
+check "pytest -q tests" allow
+check "cargo test" allow
+check "cargo clippy" allow
+check "cargo fmt --check" allow
+check "gofmt -d internal/scan" allow
 
 # ---- must be denied (write-shaped) -----------------------------------------
 check "echo hi > f.txt" deny
@@ -89,6 +109,32 @@ check "cd app && pnpm audit --fix" deny
 check "npm audit fix --force" deny
 check "npm --prefix lib audit fix" deny
 check "pnpm -C app audit --fix" deny
+check "go get github.com/x/y@latest" deny
+check "cd backend && go install ./cmd/dev" deny
+check "go mod tidy" deny
+check "go mod vendor" deny
+check "go mod edit -require=x@v1" deny
+check "go mod init example.com/x" deny
+check "go generate ./..." deny
+check "go fmt ./..." deny
+check "go fix ./..." deny
+check "go work use ./tools" deny
+check "go build -o bin/api ./cmd/api" deny
+check "go build -o=bin/api ./cmd/api" deny
+check "gofmt -w ." deny
+check "gofmt -l -w internal" deny
+check "goimports -w ." deny
+check "golangci-lint run --fix ./..." deny
+check "yarn add zod" deny
+check "yarn install" deny
+check "pip install requests" deny
+check "python3 -m pip install -e ." deny
+check "uv add httpx" deny
+check "uv sync" deny
+check "poetry add httpx" deny
+check "cargo add serde" deny
+check "cargo update" deny
+check "cargo fmt" deny
 check "npm audit fix; echo done" deny
 check "npm audit fix&& echo done" deny
 check "npm --prefix lib install" deny
@@ -116,13 +162,13 @@ jq -nc '{agent_type:"plan-verifier",tool_input:{command:"git branch -a"}}' | "$G
   || { echo "FAIL git branch deny reason lacks for-each-ref hint"; FAIL=1; }
 
 # without perl the quote stripper can't run → fail closed for a guarded agent
-NOPERL=$(mktemp -d); for t in jq sed grep; do ln -s "$(command -v $t)" "$NOPERL/$t"; done
+NOPERL=$(mktemp -d); for t in jq sed grep; do printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v $t)" > "$NOPERL/$t"; chmod +x "$NOPERL/$t"; done
 out=$(jq -nc '{agent_type:"plan-verifier",tool_input:{command:"echo x > f.txt"}}' | env PATH="$NOPERL" /bin/bash "$G" plan-verifier)
 rm -rf "$NOPERL"
 [[ "$out" == *'perl not found'* ]] && echo "ok   no-perl → deny" || { echo "FAIL no-perl: $out"; FAIL=1; }
 
 # without jq (grep/sed/head still present): a guarded agent is blocked (exit 2, install hint) ...
-NOJQ=$(mktemp -d); for t in grep sed head; do ln -s "$(command -v $t)" "$NOJQ/$t"; done
+NOJQ=$(mktemp -d); for t in grep sed head; do printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v $t)" > "$NOJQ/$t"; chmod +x "$NOJQ/$t"; done
 out=$(printf '{"agent_type":"sdd-engineering:plan-verifier","tool_input":{"command":"ls"}}' | env PATH="$NOJQ" /bin/bash "$G" plan-verifier 2>&1); code=$?
 if [ $code -eq 2 ] && [[ "$out" == *"brew install jq"* ]]; then echo "ok   no-jq blocks a guarded agent (exit 2)"; else echo "FAIL no-jq guarded: exit $code, out: $out"; FAIL=1; fi
 # ... but the main session and other agents keep working

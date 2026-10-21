@@ -119,6 +119,15 @@ test('copies of the read-only guard must stay identical', () => {
   assert.match(checkRepo(root).errors.join('\n'), /readonly-bash-guard\.sh in "app" differs from the copy in "base"/);
 });
 
+test('scripts with CRLF line endings are reported', () => {
+  const { root } = fixture();
+  write(join(root, 'plugins', 'base', 'scripts', 'guard.sh'), '#!/bin/bash\nexit 0\n');
+  write(join(root, 'plugins', 'base', 'README.md'), '# base\r\n');
+  assert.deepEqual(checkRepo(root).errors, []);
+  write(join(root, 'plugins', 'base', 'scripts', 'guard.sh'), '#!/bin/bash\r\nexit 0\r\n');
+  assert.match(checkRepo(root).errors.join('\n'), /scripts\/guard\.sh has CRLF line endings/);
+});
+
 test('release requires released dependencies, a free tag and a clean main', () => {
   const { root } = fixture();
   let errors = checkRepo(root, { plugin: 'app' }).errors.join('\n');

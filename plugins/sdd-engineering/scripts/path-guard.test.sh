@@ -34,6 +34,16 @@ check $T "$REPO/test/helpers/db.ts" allow
 check $T "$REPO/pkg/__tests__/a.ts" allow
 check $T "$REPO/pkg/__fixtures__/data.json" allow
 check $T "$REPO/e2e/flows/01-login.flow.json" allow
+check $T "$REPO/backend/internal/scan/parse_test.go" allow
+check $T "$REPO/backend/internal/scan/testdata/marketplace.json" allow
+check $T "$REPO/api/tests/test_routes.py" allow
+check $T "$REPO/api/app/test_routes.py" allow
+check $T "$REPO/api/app/routes_test.py" allow
+check $T "$REPO/api/conftest.py" allow
+check $T "$REPO/backend/internal/scan/parse.go" deny
+check $T "$REPO/backend/go.mod" deny
+check $T "$REPO/api/app/routes.py" deny
+check $T "$REPO/api/app/latest_test.go.bak" deny
 check $T "$REPO/src/app.ts" deny
 check $T "$REPO/package.json" deny
 check $T "$REPO/CLAUDE.md" deny
@@ -55,6 +65,11 @@ check $D "$REPO/pkg/INSIGHTS.md" deny
 check $D "$REPO/AGENTS.md" deny
 check $D "$REPO/.claude/agents/x.md" deny
 check $D "$REPO/src/app.ts" deny
+export SDD_PLAN_DIRS="docs/architecture/plans/ docs/plans"
+check $D "$REPO/docs/architecture/plans/2026-10-21+spec-01-a.md" deny
+check $D "$REPO/docs/architecture/06-hld.md" allow
+unset SDD_PLAN_DIRS
+check $D "$REPO/docs/architecture/plans/2026-10-21+spec-01-a.md" allow
 
 P=sdd-engineering:implementation-planner
 check $P "$HOME/.claude/plans/my-plan.md" allow
@@ -75,12 +90,26 @@ OUT=$(mktemp -d); ln -s "$OUT" "$REPO/escape"
 check $T "$REPO/escape/evil.test.ts" deny
 rm -rf "$OUT"
 
+# Windows paths (Claude Code on Windows passes C:\…): same verdicts as the POSIX form
+if command -v cygpath >/dev/null; then
+  W=$(cygpath -w "$REPO")
+  check sdd-engineering:spec-creator "$W\\specs\\SPEC-01-login.md" allow
+  check sdd-engineering:spec-creator "$W\\src\\app.ts" deny
+  check quality-review:doc-writer "$W\\docs\\guide.md" allow
+  check quality-review:doc-writer "$W\\docs\\plans\\x.md" deny
+  check quality-review:test-writer "$W\\backend\\scan_test.go" allow
+  check quality-review:test-writer "C:\\Windows\\evil.test.ts" deny
+  check sdd-engineering:implementation-planner "$(cygpath -w "$HOME")\\.claude\\plans\\my-plan.md" allow
+else
+  echo "skip Windows path cases (no cygpath)"
+fi
+
 # unknown profile fails closed
 out=$(jq -nc --arg f "$REPO/x" '{agent_type:"a",tool_input:{file_path:$f}}' | "$G" a=nonsense)
 [[ "$out" == *"unknown profile"* ]] && echo "ok   unknown profile denied" || { echo "FAIL unknown profile: $out"; FAIL=1; }
 
 # without jq: a guarded agent is blocked, others keep working
-NOJQ=$(mktemp -d); for t in grep sed head git; do ln -s "$(command -v $t)" "$NOJQ/$t"; done
+NOJQ=$(mktemp -d); for t in grep sed head git; do printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v $t)" > "$NOJQ/$t"; chmod +x "$NOJQ/$t"; done
 out=$(printf '{"agent_type":"quality-review:test-writer","tool_input":{"file_path":"x"}}' | env PATH="$NOJQ" /bin/bash "$G" "${ARGS[@]}" 2>&1); code=$?
 if [ $code -eq 2 ] && [[ "$out" == *"brew install jq"* ]]; then echo "ok   no-jq blocks a guarded agent (exit 2)"; else echo "FAIL no-jq guarded: exit $code, out: $out"; FAIL=1; fi
 out=$(printf '{"tool_input":{"file_path":"x"}}' | env PATH="$NOJQ" /bin/bash "$G" "${ARGS[@]}" 2>&1); code=$?

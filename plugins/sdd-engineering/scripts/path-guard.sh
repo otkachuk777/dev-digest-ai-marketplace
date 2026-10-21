@@ -9,8 +9,8 @@
 # main session and every other agent it exits 0 and does nothing.
 #
 # Profiles:
-#   tests — test files and test-only support: *.test.*, *.spec.*, test/ tests/ __tests__/ __mocks__/
-#           __fixtures__/ fixtures/ e2e/ directories
+#   tests — test files and test-only support: *.test.*, *.spec.*, *_test.go, test_*.py, *_test.py,
+#           conftest.py, test/ tests/ __tests__/ __mocks__/ __fixtures__/ fixtures/ testdata/ e2e/ directories
 #   docs  — documentation: docs/**, <dir>/docs/**, README.md, <dir>/README.md; never agent
 #           instructions (CLAUDE.md, AGENTS.md, INSIGHTS.md), specs, plan archives or .claude/
 #   plans — draft plan files: ~/.claude/plans/<name>.md (outside the repository)
@@ -42,15 +42,21 @@ deny() { jq -nc --arg r "path-guard($PROFILE): $1" '{hookSpecificOutput:{hookEve
 FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
 [ -n "$FILE" ] || deny "no file_path in tool input"
 
+# On Windows (Git Bash, MSYS, Cygwin) Claude Code passes C:\… paths and git prints C:/…; compare
+# everything in POSIX form, or a Windows path is taken as relative and matched against the wrong rules.
+to_posix() { if command -v cygpath >/dev/null; then cygpath -u -- "$1"; else printf '%s' "$1"; fi; }
+FILE=$(to_posix "$FILE")
+
 if [ "$PROFILE" = plans ]; then
   # Checked before the repo root: drafts live in the harness plan dir, outside the working tree.
-  PLANS="$HOME/.claude/plans"
+  PLANS="$(to_posix "$HOME")/.claude/plans"
   case "$FILE" in "$PLANS"/*.md) NAME=${FILE#"$PLANS"/};; *) deny "$FILE is not a draft plan in $PLANS/*.md";; esac
   [[ "$NAME" =~ ^[A-Za-z0-9._+-]+\.md$ ]] && [[ "$NAME" != *..* ]] && exit 0
   deny "$NAME: plan file name must be a single path segment of [A-Za-z0-9._+-]"
 fi
 
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || deny "not inside a git repository"
+ROOT=$(to_posix "$ROOT")
 case "$FILE" in /*) ;; *) FILE="$PWD/$FILE";; esac
 case "/$FILE/" in */../*|*/./*) deny "$FILE: relative segments are not allowed";; esac
 
@@ -69,11 +75,17 @@ case "$PROFILE" in
   tests)
     case "$REL" in
       *.test.*|*.spec.*) exit 0;;
-      test/*|*/test/*|tests/*|*/tests/*|__tests__/*|*/__tests__/*|__mocks__/*|*/__mocks__/*|__fixtures__/*|*/__fixtures__/*|fixtures/*|*/fixtures/*|e2e/*|*/e2e/*) exit 0;;
+      *_test.go|test_*.py|*/test_*.py|*_test.py|conftest.py|*/conftest.py) exit 0;;
+      test/*|*/test/*|tests/*|*/tests/*|__tests__/*|*/__tests__/*|__mocks__/*|*/__mocks__/*|__fixtures__/*|*/__fixtures__/*|fixtures/*|*/fixtures/*|testdata/*|*/testdata/*|e2e/*|*/e2e/*) exit 0;;
     esac
-    deny "$REL is not a test file. This agent may only write tests (*.test.*, *.spec.*) and test support in test/, tests/, __tests__/, __mocks__/, __fixtures__/, fixtures/ or e2e/ directories; prove fail-ability with the mutation probe instead of editing production code."
+    deny "$REL is not a test file. This agent may only write tests (*.test.*, *.spec.*, *_test.go, test_*.py, *_test.py, conftest.py) and test support in test/, tests/, __tests__/, __mocks__/, __fixtures__/, fixtures/, testdata/ or e2e/ directories; prove fail-ability with the mutation probe instead of editing production code."
     ;;
   docs)
+    # Plan archives named by run-plan's SDD_PLAN_DIRS are protected like docs/plans.
+    for d in ${SDD_PLAN_DIRS:-}; do
+      d=${d%/}
+      case "$REL" in "$d"/*) deny "$REL is a protected docs area (plan archive in SDD_PLAN_DIRS)";; esac
+    done
     case "$REL" in
       .claude/*) deny "$REL is agent configuration, not documentation";;
       docs/plans/*|docs/cc-plans/*|docs/reports/*) deny "$REL is a protected docs area (plans and reports)";;

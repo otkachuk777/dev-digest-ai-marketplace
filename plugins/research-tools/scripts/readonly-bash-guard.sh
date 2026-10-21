@@ -79,13 +79,38 @@ fi
 
 # ---- package managers: deny install/modify; allow test/typecheck/lint ------
 # Global flags may sit before the subcommand (`npm --prefix x install`, `pnpm -C x add y`).
-if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(npm|pnpm)([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+(install|i|ci|add|remove|uninstall|update|upgrade|link|publish)([[:space:]|;&]|$)'; then
+if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(npm|pnpm|yarn)([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+(install|i|ci|add|remove|uninstall|update|upgrade|link|publish)([[:space:]|;&]|$)'; then
   deny "package install/modify is not allowed for a read-only agent: $CMD"
 fi
 
 # `audit` is read-only, `audit fix` / `audit --fix` rewrites package.json/lockfile.
 if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(npm|pnpm)([[:space:]][^|;&]*)?[[:space:]]audit([[:space:]][^|;&]*)?[[:space:]](fix|--fix)([[:space:]|;&]|$)'; then
   deny "audit fix modifies package.json/lockfile: $CMD"
+fi
+
+# Python and Rust: installs and lock/manifest changes. `uv run`, `pytest`, `cargo test|clippy` stay allowed.
+if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(pip3?|uv[[:space:]]+pip)[[:space:]]+(install|uninstall|download)([[:space:]|;&]|$)' \
+   || printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(uv|poetry)[[:space:]]+(add|remove|sync|lock|install|update|init)([[:space:]|;&]|$)' \
+   || printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])cargo[[:space:]]+(add|remove|install|update|fix|new|init)([[:space:]|;&]|$)'; then
+  deny "package install/modify is not allowed for a read-only agent: $CMD"
+fi
+
+# ---- Go and formatters: `go test|vet|list|build ./...` and `go mod graph|why|verify` stay allowed -----
+if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])go[[:space:]]+(get|install|generate|fmt|fix)([[:space:]|;&]|$)' \
+   || printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])go[[:space:]]+mod[[:space:]]+(tidy|vendor|edit|init)([[:space:]|;&]|$)' \
+   || printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])go[[:space:]]+work[[:space:]]+(init|use|edit|sync|vendor)([[:space:]|;&]|$)'; then
+  deny "go command that changes code, go.mod/go.sum or installs binaries is not allowed for a read-only agent: $CMD"
+fi
+# `go build|test -o <file>` writes a binary; only -o /dev/null is a no-op.
+for out in $(printf '%s' "$CMD" | grep -oE '(^|[|;&]|[[:space:]])go[[:space:]]+(build|test)[[:space:]][^|;&]*' | grep -oE '[[:space:]]-o([[:space:]]+|=)[^[:space:]]+' | sed -E 's/^[[:space:]]-o([[:space:]]+|=)//'); do
+  [ "$out" = /dev/null ] || deny "go build/test -o writes a binary ($out); use -o /dev/null: $CMD"
+done
+# Formatters and linters that rewrite files.
+if printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])(gofmt|goimports)([[:space:]][^|;&]*)?[[:space:]]-w([[:space:]|;&=]|$)' \
+   || printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])golangci-lint([[:space:]][^|;&]*)?[[:space:]]--fix([[:space:]|;&=]|$)' \
+   || { printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])cargo[[:space:]]+fmt([[:space:]|;&]|$)' \
+        && ! printf '%s' "$CMD" | grep -qE '(^|[|;&]|[[:space:]])cargo[[:space:]]+fmt[[:space:]][^|;&]*--check'; }; then
+  deny "formatter/linter that rewrites files is not allowed for a read-only agent (use its check/diff mode): $CMD"
 fi
 
 # ---- DB migrations/seeds ----------------------------------------------------

@@ -62,3 +62,4 @@ jobs:
             claude plugin validate "$dir"
             echo "::endgroup::"
           done
+

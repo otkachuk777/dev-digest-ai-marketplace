@@ -1,0 +1,56 @@
+name: windows
+
+# Hooks run under Git Bash on Windows. Slow (~7 min), so only when something that runs there changes.
+on:
+  pull_request:
+    paths:
+      - 'plugins/*/scripts/**'
+      - 'plugins/*/skills/*/scripts/**'
+      - 'plugins/*/hooks/**'
+      - 'scripts/**'
+      - '.gitattributes'
+      - '.github/workflows/windows.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/*/scripts/**'
+      - 'plugins/*/skills/*/scripts/**'
+      - 'plugins/*/hooks/**'
+      - 'scripts/**'
+      - '.gitattributes'
+      - '.github/workflows/windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scripts-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check release consistency
+        run: node scripts/check-release.mjs
+
+      - name: Test plugin scripts
+        env:
+          # Real symlinks (runners are admin), so path-guard's symlink-escape test means the same as on Linux.
+          MSYS: winsymlinks:nativestrict
+        run: |
+          command -v jq >/dev/null || choco install -y jq
+          failed=()
+          for t in plugins/*/scripts/*.test.sh plugins/*/skills/*/scripts/*.test.sh; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            bash "$t" || failed+=("$t")
+            echo "::endgroup::"
+          done
+          if [ ${#failed[@]} -gt 0 ]; then printf '::error::failed: %s\n' "${failed[@]}"; exit 1; fi

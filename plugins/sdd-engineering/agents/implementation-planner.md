@@ -74,6 +74,7 @@ Blocking → Step 0 question. Non-blocking → "Requirements review" in the plan
 
 1. List the skills available to you: project skills (`.claude/skills/*/SKILL.md`), user skills, and plugin skills such as `engineering-paved-path:*`. Read each candidate's `description`.
 2. Map every file the plan creates or modifies to the skills whose description fits the work (framework, ORM, validation library, testing library, architecture and placement, security). A file can match several skills. If the repository has its own skill map or a document that names skills per path, use it first.
+   A stack skill fits only files in its stack: the language, and a framework or library the module's manifest (`package.json`, `go.mod`, `pyproject.toml`, `Cargo.toml`) actually lists. `engineering-paved-path`'s Fastify, Drizzle, Zod, TypeScript, Postgres and onion-architecture skills are written for a TypeScript service — for Go, Python or Rust files take the placement and coding rules from the repository's architecture docs and neighbouring code, cite them as the source, and list the skipped skill under "Unmapped skills" as `not applicable — <stack>`. Stack-neutral skills (`security`, `mermaid-diagram`) apply everywhere.
 3. Use the generic TypeScript skill only for type-level work (generics, conditional/mapped types, tsconfig / path aliases, TS migrations, type performance) — never for ordinary `.ts` edits.
 4. Skip workflow and process skills (PR gating, retrospectives, session insights) as sources of rules. A best-practice skill whose description also mentions reviewing (for example security or React) is still a source of coding rules.
 5. For each selected skill, load it with `Skill` and read only the linked sub-files relevant to the step (skills use progressive disclosure: topic files, `rules/`, `references/`, checklists).
@@ -81,9 +82,9 @@ Blocking → Step 0 question. Non-blocking → "Requirements review" in the plan
 
 ## Step 3 — Constraints to always check
 
-Discover them in the repository (project instructions, architecture docs, `package.json` scripts) rather than assuming:
+Discover them in the repository (project instructions, architecture docs, task runner — `Taskfile.yml`, `Makefile`, `justfile` — and `package.json` scripts) rather than assuming. Every Verify command in the plan is one of these, or the toolchain default for the module's manifest (`go test ./...` and `go vet ./...` for `go.mod`) when the repository names none. Check:
 - Do-not-touch areas: generated migrations (append-only, produced by the tool), vendored or hand-duplicated code (every copy changes together), lock files (only via the package manager).
-- The dependency-rule check (dependency-cruiser or similar) must stay green; a known-violations baseline only shrinks and is never regenerated.
+- The dependency-rule check (dependency-cruiser, `depguard` / `go-arch-lint`, import-linter or similar) must stay green; a known-violations baseline only shrinks and is never regenerated.
 - Contract and naming conventions (wire field casing, i18n message files, file naming) from the project instructions.
 - Tests: where they live for each module (co-located or a `test/` directory), which need a container or database, and whether an end-to-end test is needed — say so explicitly in the Test plan.
 
@@ -94,7 +95,7 @@ Discover them in the repository (project instructions, architecture docs, `packa
   - every file has exactly one owning group; no two groups touch the same file;
   - shared seams — duplicated copies of shared code, contract files, i18n message files, migrations, `package.json` / lock files, shared or platform code — go into **Group 0**, which runs and merges before the rest;
   - state each group's dependencies and the merge order;
-  - a fresh worktree has no `node_modules`: the group's first step installs dependencies with the module's own package manager, or its Verify commands cannot run;
+  - a fresh worktree has no `node_modules` (or `.venv`): the group's first step installs dependencies with the module's own package manager, or its Verify commands cannot run; Go modules share the module cache and need no install step;
   - the main session merges and commits with explicit paths (no `git add -A` while a subagent runs).
 - Parallel only when, after Group 0, at least two groups own three or more files each — every worktree pays a full install and a cold implementer. Otherwise say parallel buys nothing and plan single, noting it under "Execution mode".
 - **Chunks (both modes).** One implementer's context grows with every turn; a whole plan in one agent ran 200–400 turns at 200–300k context. Split each group's steps into chunks of 2–3 steps (one cohesive area each); the caller gives every chunk to a fresh implementer, in order. Step 0 Skeleton is its own chunk.

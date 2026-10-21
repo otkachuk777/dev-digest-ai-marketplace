@@ -46,12 +46,16 @@ The four dependencies install automatically: `engineering-paved-path`, `research
 | Artifact | Location |
 |---|---|
 | Spec | `<module>/specs/SPEC-NN-<slug>.md`, or `specs/SPEC-NN-<slug>.md` for cross-module features |
-| Plan (draft) | `~/.claude/plans/<name>.md`; archived to `docs/plans/<date>+spec-nn-<slug>.md` by `run-plan` (`docs/cc-plans/` is also searched) |
+| Plan (draft) | `~/.claude/plans/<name>.md`; archived to `docs/plans/<date>+spec-nn-<slug>.md` by `run-plan` (`docs/cc-plans/` is also searched). Set `SDD_PLAN_DIRS` (space-separated, first one is the archive) in the project's `.claude/settings.json` `env` to use other directories |
 | Insights | `<module>/INSIGHTS.md`, or `INSIGHTS.md` at the root |
 
 ## When no test command is found
 
-The implementer takes commands from the module's `package.json` scripts and docs. If it cannot find a test command, it says so under "Not done / blocked" and does not claim the module passes.
+The implementer takes commands from, in order: the plan, the project docs, the task runner (`Taskfile.yml`, `Makefile`, `justfile`) or `package.json` scripts, then the toolchain default for the module's manifest (`go.mod` → `go test ./...` and `go vet ./...`; `pyproject.toml` → `pytest`; `Cargo.toml` → `cargo test`). If it still cannot find a test command, it says so under "Not done / blocked" and does not claim the module passes.
+
+## Other stacks
+
+The workflow is stack-neutral. The TypeScript skills of `engineering-paved-path` (Fastify, Drizzle, Zod, onion-architecture…) apply only to files in that stack; for Go, Python or Rust code the agents take rules from the repository's architecture docs and neighbouring code and report the skill as `not applicable`. `security` and `mermaid-diagram` apply everywhere.
 
 ## How the limits are enforced
 

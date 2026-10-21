@@ -47,7 +47,7 @@ Every requirement is one bullet that starts with its bold id. Ids are unique in 
 
 `[verify: unit | it | e2e | manual]` — the test layer that proves the requirement (several allowed: `[verify: unit, e2e]`):
 - `unit` — pure logic / component test (co-located, or in the module's `test/` directory);
-- `it` — server integration with Postgres (`*.it.test.ts`);
+- `it` — server integration against a real database or local emulator, following the repository's naming (for example `*.it.test.ts`, or Go tests behind an `integration` build tag);
 - `e2e` — user flow in the repository's end-to-end suite;
 - `manual` — cannot be automated reasonably (visual quality, third-party UI); say how it is checked.
 

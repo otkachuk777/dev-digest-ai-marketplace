@@ -4,7 +4,7 @@
 //   node scripts/check-release.mjs                    structural checks for every plugin (used by CI)
 //   node scripts/check-release.mjs --plugin <name>    also check that <name> is ready to be tagged
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { extname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   git, loadMarketplace, normalizeDependency, parseArgs, parseVersion, releasedVersions, satisfies,
@@ -19,6 +19,7 @@ const LEFTOVERS = [
   { re: /\/Users\/[A-Za-z]/, what: 'absolute user path' },
 ];
 const TEXT_EXT = new Set(['.md', '.json', '.sh', '.mjs', '.js', '.ts', '.tsx', '.py', '.txt', '.yml', '.yaml', '']);
+const SCRIPT_EXT = new Set(['.sh', '.py', '.mjs', '.js']);
 
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -37,14 +38,19 @@ function frontmatterName(text) {
 function checkContent(p, where, errors) {
   for (const file of walk(p.dir)) {
     if (!TEXT_EXT.has(extname(file))) continue;
-    const rel = relative(p.dir, file);
+    // POSIX separators so the path checks below and the messages are the same on Windows.
+    const rel = relative(p.dir, file).split(sep).join('/');
     const text = readFileSync(file, 'utf8');
+    // A CRLF hook script crashes outside Git for Windows' bash, and a crashed hook does not block.
+    if (SCRIPT_EXT.has(extname(file)) && text.includes('\r')) {
+      errors.push(`${where}: ${rel} has CRLF line endings; scripts must be LF (see .gitattributes)`);
+    }
     for (const { re, what } of LEFTOVERS) {
       const line = text.split('\n').findIndex((l) => re.test(l));
       if (line >= 0) errors.push(`${where}: ${what} in ${rel}:${line + 1}`);
     }
     if (file.endsWith('SKILL.md')) {
-      const dirName = relative(join(p.dir, 'skills'), join(file, '..'));
+      const dirName = relative(join(p.dir, 'skills'), join(file, '..')).split(sep).join('/');
       if (!rel.startsWith('skills/') || dirName.includes('/')) continue;
       const name = frontmatterName(text);
       if (name !== dirName) errors.push(`${where}: skill ${rel} has name "${name}", expected "${dirName}"`);
