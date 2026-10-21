@@ -42,15 +42,21 @@ deny() { jq -nc --arg r "path-guard($PROFILE): $1" '{hookSpecificOutput:{hookEve
 FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
 [ -n "$FILE" ] || deny "no file_path in tool input"
 
+# On Windows (Git Bash, MSYS, Cygwin) Claude Code passes C:\… paths and git prints C:/…; compare
+# everything in POSIX form, or a Windows path is taken as relative and matched against the wrong rules.
+to_posix() { if command -v cygpath >/dev/null; then cygpath -u -- "$1"; else printf '%s' "$1"; fi; }
+FILE=$(to_posix "$FILE")
+
 if [ "$PROFILE" = plans ]; then
   # Checked before the repo root: drafts live in the harness plan dir, outside the working tree.
-  PLANS="$HOME/.claude/plans"
+  PLANS="$(to_posix "$HOME")/.claude/plans"
   case "$FILE" in "$PLANS"/*.md) NAME=${FILE#"$PLANS"/};; *) deny "$FILE is not a draft plan in $PLANS/*.md";; esac
   [[ "$NAME" =~ ^[A-Za-z0-9._+-]+\.md$ ]] && [[ "$NAME" != *..* ]] && exit 0
   deny "$NAME: plan file name must be a single path segment of [A-Za-z0-9._+-]"
 fi
 
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || deny "not inside a git repository"
+ROOT=$(to_posix "$ROOT")
 case "$FILE" in /*) ;; *) FILE="$PWD/$FILE";; esac
 case "/$FILE/" in */../*|*/./*) deny "$FILE: relative segments are not allowed";; esac
 

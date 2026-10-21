@@ -90,6 +90,20 @@ OUT=$(mktemp -d); ln -s "$OUT" "$REPO/escape"
 check $T "$REPO/escape/evil.test.ts" deny
 rm -rf "$OUT"
 
+# Windows paths (Claude Code on Windows passes C:\…): same verdicts as the POSIX form
+if command -v cygpath >/dev/null; then
+  W=$(cygpath -w "$REPO")
+  check sdd-engineering:spec-creator "$W\\specs\\SPEC-01-login.md" allow
+  check sdd-engineering:spec-creator "$W\\src\\app.ts" deny
+  check quality-review:doc-writer "$W\\docs\\guide.md" allow
+  check quality-review:doc-writer "$W\\docs\\plans\\x.md" deny
+  check quality-review:test-writer "$W\\backend\\scan_test.go" allow
+  check quality-review:test-writer "C:\\Windows\\evil.test.ts" deny
+  check sdd-engineering:implementation-planner "$(cygpath -w "$HOME")\\.claude\\plans\\my-plan.md" allow
+else
+  echo "skip Windows path cases (no cygpath)"
+fi
+
 # unknown profile fails closed
 out=$(jq -nc --arg f "$REPO/x" '{agent_type:"a",tool_input:{file_path:$f}}' | "$G" a=nonsense)
 [[ "$out" == *"unknown profile"* ]] && echo "ok   unknown profile denied" || { echo "FAIL unknown profile: $out"; FAIL=1; }
