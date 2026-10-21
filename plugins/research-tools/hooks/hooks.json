@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/readonly-bash-guard.sh researcher brainstorm"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/readonly-bash-guard.sh\" researcher brainstorm"
           }
         ]
       }

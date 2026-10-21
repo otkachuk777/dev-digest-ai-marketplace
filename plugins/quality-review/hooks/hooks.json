@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/readonly-bash-guard.sh code-reviewer security-reviewer"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/readonly-bash-guard.sh\" code-reviewer security-reviewer"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/path-guard.sh test-writer=tests doc-writer=docs"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/path-guard.sh\" test-writer=tests doc-writer=docs"
           }
         ]
       }

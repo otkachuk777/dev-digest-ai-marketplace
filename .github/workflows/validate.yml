@@ -62,3 +62,29 @@ jobs:
             claude plugin validate "$dir"
             echo "::endgroup::"
           done
+
+  # Hooks run under Git Bash on Windows: the guards and their tests must pass there too.
+  scripts-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check release consistency
+        run: node scripts/check-release.mjs
+
+      - name: Test plugin scripts
+        run: |
+          command -v jq >/dev/null || choco install -y jq
+          for t in plugins/*/scripts/*.test.sh plugins/*/skills/*/scripts/*.test.sh; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            bash "$t"
+            echo "::endgroup::"
+          done

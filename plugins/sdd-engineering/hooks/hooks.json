@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/readonly-bash-guard.sh spec-creator implementation-planner plan-verifier"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/readonly-bash-guard.sh\" spec-creator implementation-planner plan-verifier"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/path-guard.sh implementation-planner=plans spec-creator=specs"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/path-guard.sh\" implementation-planner=plans spec-creator=specs"
           }
         ]
       },
@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/agent-type-guard.sh spec-creator=researcher implementation-planner=brainstorm"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/agent-type-guard.sh\" spec-creator=researcher implementation-planner=brainstorm"
           }
         ]
       },
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/browser-url-guard.sh spec-creator"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/browser-url-guard.sh\" spec-creator"
           }
         ]
       }
