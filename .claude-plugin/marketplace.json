@@ -24,8 +24,8 @@
         "source": "git-subdir",
         "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
         "path": "plugins/research-tools",
-        "ref": "research-tools--v1.0.0",
-        "sha": "e6a0b2edcda1038d9125b7e94bc83aa335aa1d96"
+        "ref": "research-tools--v1.1.0",
+        "sha": "6da4fd3c0e4517f4c1c3e9de82a42b98d85550e3"
       }
     },
     {
@@ -35,8 +35,8 @@
         "source": "git-subdir",
         "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
         "path": "plugins/architecture-review",
-        "ref": "architecture-review--v1.0.0",
-        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+        "ref": "architecture-review--v1.1.0",
+        "sha": "6da4fd3c0e4517f4c1c3e9de82a42b98d85550e3"
       }
     },
     {
@@ -46,8 +46,8 @@
         "source": "git-subdir",
         "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
         "path": "plugins/quality-review",
-        "ref": "quality-review--v1.0.0",
-        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+        "ref": "quality-review--v1.1.0",
+        "sha": "6da4fd3c0e4517f4c1c3e9de82a42b98d85550e3"
       }
     },
     {
@@ -57,8 +57,8 @@
         "source": "git-subdir",
         "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
         "path": "plugins/sdd-engineering",
-        "ref": "sdd-engineering--v1.0.0",
-        "sha": "92e68c76c09d4e5a399a9caa1e08bc84ebe719f8"
+        "ref": "sdd-engineering--v1.2.0",
+        "sha": "6da4fd3c0e4517f4c1c3e9de82a42b98d85550e3"
       }
     }
   ]
