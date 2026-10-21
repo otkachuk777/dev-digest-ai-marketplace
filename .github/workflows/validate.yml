@@ -80,11 +80,17 @@ jobs:
         run: node scripts/check-release.mjs
 
       - name: Test plugin scripts
+        env:
+          # Real symlinks (runners are admin), so path-guard's symlink-escape test means the same as on Linux.
+          MSYS: winsymlinks:nativestrict
         run: |
           command -v jq >/dev/null || choco install -y jq
+          failed=()
           for t in plugins/*/scripts/*.test.sh plugins/*/skills/*/scripts/*.test.sh; do
             [ -f "$t" ] || continue
             echo "::group::$t"
-            bash "$t"
+            bash "$t" || failed+=("$t")
             echo "::endgroup::"
           done
+          if [ ${#failed[@]} -gt 0 ]; then printf '::error::failed: %s
+' "${failed[@]}"; exit 1; fi

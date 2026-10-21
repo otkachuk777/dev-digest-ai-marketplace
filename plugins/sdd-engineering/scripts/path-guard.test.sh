@@ -95,7 +95,7 @@ out=$(jq -nc --arg f "$REPO/x" '{agent_type:"a",tool_input:{file_path:$f}}' | "$
 [[ "$out" == *"unknown profile"* ]] && echo "ok   unknown profile denied" || { echo "FAIL unknown profile: $out"; FAIL=1; }
 
 # without jq: a guarded agent is blocked, others keep working
-NOJQ=$(mktemp -d); for t in grep sed head git; do ln -s "$(command -v $t)" "$NOJQ/$t"; done
+NOJQ=$(mktemp -d); for t in grep sed head git; do printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v $t)" > "$NOJQ/$t"; chmod +x "$NOJQ/$t"; done
 out=$(printf '{"agent_type":"quality-review:test-writer","tool_input":{"file_path":"x"}}' | env PATH="$NOJQ" /bin/bash "$G" "${ARGS[@]}" 2>&1); code=$?
 if [ $code -eq 2 ] && [[ "$out" == *"brew install jq"* ]]; then echo "ok   no-jq blocks a guarded agent (exit 2)"; else echo "FAIL no-jq guarded: exit $code, out: $out"; FAIL=1; fi
 out=$(printf '{"tool_input":{"file_path":"x"}}' | env PATH="$NOJQ" /bin/bash "$G" "${ARGS[@]}" 2>&1); code=$?
