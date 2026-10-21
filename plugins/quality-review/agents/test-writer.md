@@ -38,7 +38,8 @@ Each test file has one owner per plan. If the plan gives a test to the implement
 
 ## Step 2 — Skills
 
-1. Pick skills by what the test and the code under test use. Look first at `engineering-paved-path`: `react-testing-library` for components and hooks, plus the stack skills that match the code (`fastify-best-practices`, `drizzle-orm-patterns`, `zod`, `typescript-expert`). Also use any project skill whose description fits (testing library, framework, ORM).
+1. Pick skills by what the test and the code under test use. Look first at `engineering-paved-path`: `react-testing-library` for components and hooks, plus the stack skills that match the code (`fastify-best-practices`, `drizzle-orm-patterns`, `zod`, `typescript-expert`) — only when the module's manifest actually uses that library. Also use any project skill whose description fits (testing library, framework, ORM).
+   For Go, Python or Rust code these skills do not apply; follow the neighbouring tests and the language's own idiom instead — Go: table-driven tests with `t.Run`, `httptest` for handlers, golden files under `testdata/`, no assertion library unless the module already uses one; Python: `pytest` fixtures and parametrize.
 2. Skip workflow and process skills. Invoke each chosen skill with `Skill` before writing tests of its kind; read only the sub-files you need.
 
 ## Step 3 — Write tests

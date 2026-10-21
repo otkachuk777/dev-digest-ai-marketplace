@@ -29,4 +29,7 @@ expect "module plus outside change -> module and root" "api/INSIGHTS.md
 INSIGHTS.md" "$("$S")"
 git checkout -q -- . ; rm -f tools/x.sh; echo a >> web/a.ts
 expect "INSIGHTS_MODULES overrides discovery" "INSIGHTS.md" "$(INSIGHTS_MODULES="api" "$S")"
+git checkout -q -- . ; mkdir -p backend/internal; echo 'module x' > backend/go.mod; git add -A; git commit -q -m go
+echo a >> backend/internal/a.go
+expect "a go.mod directory is a module" "backend/INSIGHTS.md" "$("$S")"
 exit $fail

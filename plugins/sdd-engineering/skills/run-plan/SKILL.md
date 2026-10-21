@@ -59,7 +59,7 @@ Every phase ends with `git commit -m "SDD(SPEC-NN): <phase>" -- <explicit paths>
 ## Phase 0 — Setup
 
 1. Resume: `git worktree list | grep -i spec-NN` → continue there. New: `EnterWorktree` on branch `feat/spec-NN-<slug>` from `origin/<default>` (never from the current branch). If the user named a branch, use that name instead — and create the worktree *before* spec-creator's write round, passing its absolute path in the prompt (spec-creator cannot create branches; otherwise its spec lands in the main checkout and has to be moved).
-2. Bring the SPEC and the plan into the worktree if `origin/<default>` lacks them: copy from the original checkout / `~/.claude/plans/`; the plan goes to `docs/plans/<YYYY-MM-DD>+spec-NN-<slug>.md` (or the repository's existing plan archive). Commit `SDD(SPEC-NN): plan` (SPEC + plan). Tell the user the original copies can be removed from the other checkout.
+2. Bring the SPEC and the plan into the worktree if `origin/<default>` lacks them: copy from the original checkout / `~/.claude/plans/`; the plan goes to `<archive>/<YYYY-MM-DD>+spec-NN-<slug>.md`, where `<archive>` is the first directory in `SDD_PLAN_DIRS` when it is set (for example `"env": {"SDD_PLAN_DIRS": "docs/architecture/plans docs/plans"}` in `.claude/settings.json`), else the repository's existing plan archive, else `docs/plans`. Commit `SDD(SPEC-NN): plan` (SPEC + plan). Tell the user the original copies can be removed from the other checkout.
 3. Read the plan's `## Test mode` (missing → `inline`) and `## Execution mode` table (groups, chunks).
 
 ## Phase 1 — Build

@@ -9,8 +9,8 @@
 # main session and every other agent it exits 0 and does nothing.
 #
 # Profiles:
-#   tests — test files and test-only support: *.test.*, *.spec.*, test/ tests/ __tests__/ __mocks__/
-#           __fixtures__/ fixtures/ e2e/ directories
+#   tests — test files and test-only support: *.test.*, *.spec.*, *_test.go, test_*.py, *_test.py,
+#           conftest.py, test/ tests/ __tests__/ __mocks__/ __fixtures__/ fixtures/ testdata/ e2e/ directories
 #   docs  — documentation: docs/**, <dir>/docs/**, README.md, <dir>/README.md; never agent
 #           instructions (CLAUDE.md, AGENTS.md, INSIGHTS.md), specs, plan archives or .claude/
 #   plans — draft plan files: ~/.claude/plans/<name>.md (outside the repository)
@@ -69,11 +69,17 @@ case "$PROFILE" in
   tests)
     case "$REL" in
       *.test.*|*.spec.*) exit 0;;
-      test/*|*/test/*|tests/*|*/tests/*|__tests__/*|*/__tests__/*|__mocks__/*|*/__mocks__/*|__fixtures__/*|*/__fixtures__/*|fixtures/*|*/fixtures/*|e2e/*|*/e2e/*) exit 0;;
+      *_test.go|test_*.py|*/test_*.py|*_test.py|conftest.py|*/conftest.py) exit 0;;
+      test/*|*/test/*|tests/*|*/tests/*|__tests__/*|*/__tests__/*|__mocks__/*|*/__mocks__/*|__fixtures__/*|*/__fixtures__/*|fixtures/*|*/fixtures/*|testdata/*|*/testdata/*|e2e/*|*/e2e/*) exit 0;;
     esac
-    deny "$REL is not a test file. This agent may only write tests (*.test.*, *.spec.*) and test support in test/, tests/, __tests__/, __mocks__/, __fixtures__/, fixtures/ or e2e/ directories; prove fail-ability with the mutation probe instead of editing production code."
+    deny "$REL is not a test file. This agent may only write tests (*.test.*, *.spec.*, *_test.go, test_*.py, *_test.py, conftest.py) and test support in test/, tests/, __tests__/, __mocks__/, __fixtures__/, fixtures/, testdata/ or e2e/ directories; prove fail-ability with the mutation probe instead of editing production code."
     ;;
   docs)
+    # Plan archives named by run-plan's SDD_PLAN_DIRS are protected like docs/plans.
+    for d in ${SDD_PLAN_DIRS:-}; do
+      d=${d%/}
+      case "$REL" in "$d"/*) deny "$REL is a protected docs area (plan archive in SDD_PLAN_DIRS)";; esac
+    done
     case "$REL" in
       .claude/*) deny "$REL is agent configuration, not documentation";;
       docs/plans/*|docs/cc-plans/*|docs/reports/*) deny "$REL is a protected docs area (plans and reports)";;
