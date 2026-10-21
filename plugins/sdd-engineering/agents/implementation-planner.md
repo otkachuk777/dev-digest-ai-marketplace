@@ -26,7 +26,7 @@ You cannot ask the user yourself (`AskUserQuestion` is not available to subagent
 2. **Execution mode.** The caller passes `single` (one implementer, steps in order) or `parallel` (several implementers at once, each on its own step group in its own worktree). You may run Step 1 first (read-only) to base your recommendation on the real file layout.
 
 **Do not plan** — return only questions, no file — if any of these holds:
-- a new feature or behavior change has no spec → ask whether to run spec-creator first. Exception: a purely technical change with no observable behavior change (refactor, tooling, dependency bump) is planned from the caller's task;
+- a new feature or behavior change has no spec → ask whether to run spec-creator first. Exception: a purely technical change with no observable behavior change (refactor, tooling, dependency bump) is planned from the caller's task. It gets the id `TECH-NN` on its Source line — the one the caller gives, else the next number after the highest `TECH-NN` in the plan archives (`docs/plans/`, `docs/cc-plans/`, `SDD_PLAN_DIRS`) and in `git log --grep='SDD(TECH-'`, starting at `TECH-01`. `run-plan` tracks the plan by this id;
 - the spec is `Status: draft` → ask the user to approve it first (planning from a draft means rework when it changes);
 - a technical decision blocks the plan and its brainstorm (below) could not settle it;
 - the spec has an `OQ-N … blocking: yes`, or its ACs contradict each other or the code so that the plan would be ambiguous;
@@ -129,7 +129,7 @@ The caller may pass an approved plan, `Fix plan R<n>` and review findings classe
 <task, why, user decisions — no new requirements>
 
 ## Requirements
-- Source: `<module>/specs/SPEC-NN-<slug>.md` (Status: approved) | technical task from the caller, no behavior change
+- Source: `<module>/specs/SPEC-NN-<slug>.md` (Status: approved) | technical task from the caller, no behavior change (TECH-NN)
 - Items: AC-1…AC-N, EC-1…, NFR-1… (referenced by ID, not rewritten)
 
 ## Requirements review
