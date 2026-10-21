@@ -34,7 +34,7 @@ Number findings by reviewer: `A<n>` architecture, `S<n>` security, `C<n>` code-r
 | `fix-along` | minor / Nit in a file that already has a `fix` this round | fix in the same chunk — the file is open anyway |
 | `defer` | any other minor / Nit | `Follow-ups` (PR body); never a round of its own |
 | `dispute` | a critical whose scenario depends on prior state ("existing rows", "used to be validated") | check the premise yourself first (grep every branch, `git cat-file -e <rev>:<path>`, and any insights files); refuted → downgrade and record why |
-| `replan` | the fix changes a Test seam, a contract, or more than one module, or contradicts the plan | implementation-planner **fix plan addendum**, written to `~/.claude/plans/<plan-name>-addendum.md` (the planner can only write to the plan directory): a ready-to-append section between `=== APPEND BELOW ===` / `=== END APPEND ===` plus exact coverage-table row replacements → short user approval → the main session appends it to the archived plan, applies the replacements, deletes the draft and commits `SDD(SPEC-NN): fix plan addendum` → its steps become the fix chunks (spec amendment first via spec-creator when an AC changes) |
+| `replan` | the fix changes a Test seam, a contract, or more than one module, or contradicts the plan | implementation-planner **fix plan addendum**, written to `~/.claude/plans/<plan-name>-addendum.md` (the planner can only write to the plan directory): a ready-to-append section between `=== APPEND BELOW ===` / `=== END APPEND ===` plus exact coverage-table row replacements → short user approval → the main session appends it to the archived plan, applies the replacements, deletes the draft and commits `SDD(<ID>): fix plan addendum` → its steps become the fix chunks (spec amendment first via spec-creator when an AC changes) |
 
 `Unknown` / non-blocking major with no clear fix → `defer` with the reviewer's "what would confirm it".
 
@@ -49,7 +49,7 @@ Fix mode. Plan: <path>. Red tests: <red_sha, test-first only> (never edit the te
 Fix only these. Report per id: fixed + evidence | can't — why.
 ```
 
-Replan chunks run like normal plan chunks. After the chunks: commit `SDD(SPEC-NN): review-<n>`.
+Replan chunks run like normal plan chunks. After the chunks: commit `SDD(<ID>): review-<n>`.
 
 ### 4. Review log
 

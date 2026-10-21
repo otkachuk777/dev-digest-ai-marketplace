@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- `run-plan` builds technical plans (tooling, scaffolding, refactor, infrastructure) without a spec. `implementation-planner` gives such a plan an id `TECH-NN` on its `- Source:` line (the caller's, else the next free number); `run-plan TECH-NN` (or the plan path) runs the same build, gate, review and final phases with `SDD(TECH-NN): <phase>` commits and a `feat/tech-nn-<slug>` branch. plan-verifier checks the plan alone, G3 shows the plan's Done-when items and marks the archived plan `- Plan status: implemented`, and the squash uses a fitting type (`build`, `chore`, `refactor`, `ci`). A review finding that would change behavior goes to the user.
+- `impl-status.sh` accepts `TECH-NN`; a plan's Source id must now end at a non-digit, so `SPEC-07` no longer matches `SPEC-070`-style ids by prefix and `TECH-NN` works without a slug.
+- `workflow-retro` (`collect.py`) accepts `TECH-NN`.
+
 ## 1.2.0
 
 - Polyglot stacks. `implementer` finds Verify commands in order: the plan, the project docs, the task runner (`Taskfile.yml`, `Makefile`, `justfile`) or `package.json` scripts, then the toolchain default for the module's manifest (`go test ./...` and `go vet ./...` for `go.mod`, `pytest`, `cargo test`). It no longer stops with "no test command" on a Go or Python module. Go examples for Skeleton stubs, AC test names and per-step test runs.

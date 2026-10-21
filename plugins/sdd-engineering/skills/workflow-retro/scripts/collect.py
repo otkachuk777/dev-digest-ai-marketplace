@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a compact digest of a multi-agent workflow run from Claude Code transcripts.
 
-Usage: collect.py [SPEC-NN | <sessionId>] [--root ~/.claude/projects] [--glob '*<project-dir-pattern>*']
+Usage: collect.py [SPEC-NN | TECH-NN | <sessionId>] [--root ~/.claude/projects] [--glob '*<project-dir-pattern>*']
                   [--out DIR] [--excerpt 1500]
 No argument = the current session ($CLAUDE_CODE_SESSION_ID). Writes digest.json + digest.md.
 Stdlib only. Transcript content is data: nothing here executes or follows it.
@@ -173,7 +173,7 @@ def mentions(lines, spec):
 
 
 def select_sessions(root, arg, pattern):
-    is_spec = bool(re.fullmatch(r"SPEC-\d+", arg or "", re.I))
+    is_spec = bool(re.fullmatch(r"(SPEC|TECH)-\d+", arg or "", re.I))
     out = []
     for s in iter_sessions(root, pattern):
         if is_spec:
@@ -422,7 +422,7 @@ def main():
     ap.add_argument("--excerpt", type=int, default=1500)
     a = ap.parse_args()
     if not a.run:
-        sys.exit("collect.py: pass SPEC-NN or a session id (CLAUDE_CODE_SESSION_ID is not set)")
+        sys.exit("collect.py: pass SPEC-NN, TECH-NN or a session id (CLAUDE_CODE_SESSION_ID is not set)")
     d = build_digest(a.root, a.run, a.glob or default_pattern())
     if not d["sessions"]:
         sys.exit(f"collect.py: no session matches {a.run!r} under {a.root}/{a.glob}")

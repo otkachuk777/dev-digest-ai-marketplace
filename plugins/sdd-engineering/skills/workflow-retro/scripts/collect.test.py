@@ -113,6 +113,13 @@ def build(root):
                                             asst(end, f"{aid}-m", [{"type": "text", "text": "done"}], side=True)])
         meta(f"{sub2}/agent-{aid}.meta.json", agentType=typ, description=aid, spawnDepth=1)
 
+    # S4: a technical plan run, TECH-03, matched by its commit marker only.
+    write(f"{p2}/s4.jsonl", [
+        human(700, "/sdd-engineering:run-plan docs/plans/2026-10-04+foundation.md"),
+        asst(701, "t1", [tool("c2", "Bash", {"command": 'git commit -m "SDD(TECH-03): plan"'})]),
+        result(702, "c2"),
+    ])
+
     # S3: unrelated session, no subagents dir.
     write(f"{p1}/s3.jsonl", [human(600, 'check docs "$ROOT/specs/SPEC-07-x.md" deny'),
                              asst(601, "z1", [tool("g1", "Agent", {"subagent_type": "general-purpose", "prompt": "diff: specs/SPEC-07-x.md"})])])
@@ -126,6 +133,9 @@ def main():
         sel = collect.select_sessions(root, "SPEC-07", "*demo-app*")
         assert [s["id"] for s in sel] == ["s1", "s2"], [s["id"] for s in sel]
         assert [s["id"] for s in collect.select_sessions(root, "s3", "*demo-app*")] == ["s3"]
+        tech = collect.select_sessions(root, "TECH-03", "*demo-app*")
+        assert [s["id"] for s in tech] == ["s4"], [s["id"] for s in tech]
+        assert tech[0]["matched_by"].startswith("commit:"), tech[0]["matched_by"]
 
         d = collect.build_digest(root, "SPEC-07", "*demo-app*")
         s1, s2 = d["sessions"]

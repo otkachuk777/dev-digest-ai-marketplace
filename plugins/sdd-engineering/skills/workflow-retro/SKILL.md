@@ -2,7 +2,7 @@
 name: workflow-retro
 description: Retrospective of a multi-agent run (the SDD workflow — spec-creator, implementation-planner, run-plan with implementer, test-writer, plan-verifier and reviewers). Builds a deterministic digest from the Claude Code transcripts (agents, spawn order and tree, tokens, cache hit, peak context, duplicated reads, errors, rework, lost parallelism, human interventions), judges each agent against a rubric, writes docs/workflow-retros/<date>+<run>.md, appends the trend index and proposes evidence-backed edits to .claude/agents and /impl that are applied only on the user's yes. Use after an SDD run or /impl, or when the user says "retro", "how did the workflow go", "where did the agents spend tokens", or invokes /workflow-retro.
 compatibility: "Requires python3 3.9+ and local Claude Code transcripts in ~/.claude/projects"
-argument-hint: "[SPEC-NN | sessionId]"
+argument-hint: "[SPEC-NN | TECH-NN | sessionId]"
 ---
 
 # /workflow-retro — what the agents did, what it cost, what to change
@@ -16,7 +16,7 @@ S="${CLAUDE_SKILL_DIR}"/scripts
 python3 $S/collect.py $ARGUMENTS --out "$TMPDIR/workflow-retro/<run>"
 ```
 
-- `SPEC-NN` → every session of this repository (all worktree slugs) that references the spec: a human prompt, a prompt to an SDD agent, or an `SDD(SPEC-NN)` commit. Check `matched_by` in `digest.json` if a session looks foreign.
+- `SPEC-NN` (or `TECH-NN` for a technical plan) → every session of this repository (all worktree slugs) that references it: a human prompt, a prompt to an SDD agent, or an `SDD(SPEC-NN)` / `SDD(TECH-NN)` commit. Check `matched_by` in `digest.json` if a session looks foreign.
 - `<sessionId>` → that session. No argument → the current session (`$CLAUDE_CODE_SESSION_ID`).
 - The project directory is matched by the repository's name; pass `--glob '*<pattern>*'` to `collect.py` to match another one.
 - Self-check: `python3 $S/collect.test.py`.

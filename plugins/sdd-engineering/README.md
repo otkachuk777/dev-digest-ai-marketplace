@@ -12,7 +12,7 @@ spec-creator ──▶ approved SPEC ──▶ implementation-planner ──▶ 
                   plan-verifier (final) ──▶ G3 (you approve) ──▶ squash ──▶ PR ──▶ retro · insights
 ```
 
-Spec and plan are made by hand, one human gate each; `run-plan` refuses to start without both.
+Spec and plan are made by hand, one human gate each; `run-plan` refuses to start without both. A technical change with no behavior change (tooling, scaffolding, refactor, infrastructure) skips the spec: `implementation-planner` plans it from your task with an id `TECH-NN`, and `run-plan TECH-NN` builds it the same way, verified against the plan alone.
 
 ## Agents
 
@@ -27,7 +27,7 @@ Spec and plan are made by hand, one human gate each; `run-plan` refuses to start
 
 | Skill | Use it for |
 |---|---|
-| `/sdd-engineering:run-plan <SPEC-NN \| plan path>` | Orchestrates build, gate, review-and-fix rounds, final verification and the PR. Started only by you, never by the model. |
+| `/sdd-engineering:run-plan <SPEC-NN \| TECH-NN \| plan path>` | Orchestrates build, gate, review-and-fix rounds, final verification and the PR. Started only by you, never by the model. |
 | `ears-spec` | The spec format: template, ids, `[verify:]` tags, traceability, and `spec-lint.sh`. The single source for spec and plan agents. |
 | `workflow-retro` | Retrospective of a multi-agent run from the Claude Code transcripts: tokens, duplicated reads, rework, human interventions. |
 | `engineering-insights` | Read a module's `INSIGHTS.md` at session start, append a lesson at wrap-up. |
@@ -46,7 +46,7 @@ The four dependencies install automatically: `engineering-paved-path`, `research
 | Artifact | Location |
 |---|---|
 | Spec | `<module>/specs/SPEC-NN-<slug>.md`, or `specs/SPEC-NN-<slug>.md` for cross-module features |
-| Plan (draft) | `~/.claude/plans/<name>.md`; archived to `docs/plans/<date>+spec-nn-<slug>.md` by `run-plan` (`docs/cc-plans/` is also searched). Set `SDD_PLAN_DIRS` (space-separated, first one is the archive) in the project's `.claude/settings.json` `env` to use other directories |
+| Plan (draft) | `~/.claude/plans/<name>.md`; archived to `docs/plans/<date>+spec-nn-<slug>.md` (or `+tech-nn-<slug>.md`) by `run-plan` (`docs/cc-plans/` is also searched). Set `SDD_PLAN_DIRS` (space-separated, first one is the archive) in the project's `.claude/settings.json` `env` to use other directories |
 | Insights | `<module>/INSIGHTS.md`, or `INSIGHTS.md` at the root |
 
 ## When no test command is found
