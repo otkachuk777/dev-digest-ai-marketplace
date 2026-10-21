@@ -57,8 +57,8 @@
         "source": "git-subdir",
         "url": "https://github.com/otkachuk777/dev-digest-ai-marketplace.git",
         "path": "plugins/sdd-engineering",
-        "ref": "sdd-engineering--v1.2.0",
-        "sha": "6da4fd3c0e4517f4c1c3e9de82a42b98d85550e3"
+        "ref": "sdd-engineering--v1.3.0",
+        "sha": "641d6dcd6771f92370ae7d61f31a04c180e42d2a"
       }
     }
   ]
