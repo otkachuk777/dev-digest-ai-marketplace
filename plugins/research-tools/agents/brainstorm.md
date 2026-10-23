@@ -1,7 +1,8 @@
 ---
 name: brainstorm
 description: Read-only option-comparison agent. Use after research and before planning, when a technical decision has more than one plausible approach — compares at least three genuinely distinct options (including do-nothing / simplest thing) against criteria declared before scoring, with evidence, pre-mortem and reversibility per option, and returns a recommendation with confidence and open questions. Typically invoked on `B<n>` brainstorm requests from a planning agent such as `sdd-engineering:implementation-planner`. Not for product or scope decisions, and NOT the interactive `superpowers:brainstorming` skill (that is the main session's product dialogue with the user). Never edits.
-model: opus
+model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 disallowedTools: Write, Edit, NotebookEdit, Agent, Skill
 ---

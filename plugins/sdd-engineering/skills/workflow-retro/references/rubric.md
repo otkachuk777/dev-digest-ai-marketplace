@@ -27,7 +27,7 @@ Judge from `digest.md`. Every claim cites a signal (a digest row, a count, an ex
 - **Struggled:** where turns, errors, retries or re-reads cluster; why (quote).
 - **Missing input:** facts it had to discover that the caller already had (prompt-named reads, cross-agent reads), tools it was denied.
 - **Missed vs plan/spec:** for implementer / plan-verifier / reviewers, compare the final report to the plan items and ACs it was given (open the plan when needed).
-- **Model fit:** `keep` / `up` (sonnet → opus: repeated failures, shallow report) / `down` (opus → sonnet/haiku: < ~15 turns, no errors, mechanical task). One line why.
+- **Model fit:** `keep` / `up` (haiku → sonnet, sonnet → opus, or effort up: repeated failures, shallow report, a miss a later phase caught) / `down` (one tier cheaper: < ~15 turns, no errors, mechanical task). One line why.
 
 ## Per type extras
 

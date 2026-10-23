@@ -1,7 +1,7 @@
 {
   "name": "quality-review",
   "displayName": "Quality Review",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Code review, security review, test writing and documentation agents, each confined by hooks to what it may touch.",
   "author": {
     "name": "AI Engineering"

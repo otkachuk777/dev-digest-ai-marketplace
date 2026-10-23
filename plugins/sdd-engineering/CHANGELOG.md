@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0
+
+- `run-plan` model table for the Claude 5.5 generation: security-reviewer round 1 runs on sonnet with effort `high` instead of opus; every reviewer in re-review rounds, plan-verifier `pass: 2` and doc-writer run on haiku. implementer, test-writer, plan-verifier `pass: 1` and round-1 architecture and code review stay on sonnet. Opus stays with spec-creator and implementation-planner.
+- `implementation-planner` runs brainstorms on the agent's default (sonnet, effort `high`) and no longer passes `model`.
+- `spec-creator` passes `model: "haiku"` to `repo` research requests; `external` and `both` keep sonnet.
+- `workflow-retro` rubric: model fit `up` / `down` covers haiku and effort, one tier at a time.
+
 ## 1.4.0
 
 - `run-plan` Phase 0 preflights the plan's Verify toolchain from the worktree before Build: each distinct Verify command (race detector, vulnerability scanner, integration task) is dry-run once on the smallest target, and a tool or flag error stops the run before chunk 1 instead of surfacing mid-chunk.
