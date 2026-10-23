@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+
+- `run-plan` Phase 0 preflights the plan's Verify toolchain from the worktree before Build: each distinct Verify command (race detector, vulnerability scanner, integration task) is dry-run once on the smallest target, and a tool or flag error stops the run before chunk 1 instead of surfacing mid-chunk.
+- `implementer`: a formatter or lint check passes only when its output is empty; a listed file, including `<standard input>` from a piped check such as `tr -d '' < f | gofmt -l`, is a failure to fix before reporting.
+- `workflow-retro` (`collect.py`) reads transcripts and writes `digest.md` / `digest.json` as UTF-8, so it no longer crashes on Windows (cp1252) on characters such as `≥`.
+- `workflow-retro` (`collect.py`) takes an agent's final report from its last `SubagentHandback` message when there is one, instead of the last assistant text line after it.
+- `path-guard.sh`: same worktree fix as `quality-review` 1.1.1 (shared copy).
+
 ## 1.3.0
 
 - `run-plan` builds technical plans (tooling, scaffolding, refactor, infrastructure) without a spec. `implementation-planner` gives such a plan an id `TECH-NN` on its `- Source:` line (the caller's, else the next free number); `run-plan TECH-NN` (or the plan path) runs the same build, gate, review and final phases with `SDD(TECH-NN): <phase>` commits and a `feat/tech-nn-<slug>` branch. plan-verifier checks the plan alone, G3 shows the plan's Done-when items and marks the archived plan `- Plan status: implemented`, and the squash uses a fitting type (`build`, `chore`, `refactor`, `ci`). A review finding that would change behavior goes to the user.

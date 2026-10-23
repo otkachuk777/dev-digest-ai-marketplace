@@ -112,6 +112,13 @@ def build(root):
         write(f"{sub2}/agent-{aid}.jsonl", [human(start, f"go {aid}", side=True),
                                             asst(end, f"{aid}-m", [{"type": "text", "text": "done"}], side=True)])
         meta(f"{sub2}/agent-{aid}.meta.json", agentType=typ, description=aid, spawnDepth=1)
+    # b1 hands its report back through SubagentHandback; the short text line after it is not the report.
+    # Non-ASCII text in prompt and report must survive into digest.md on any platform encoding.
+    write(f"{sub2}/agent-b1.jsonl", [
+        human(210, "go b1, budget ≥ 300", side=True),
+        asst(290, "b1-h", [tool("h1", "SubagentHandback", {"message": "HANDBACK report ≥ ok"})], side=True),
+        asst(300, "b1-m", [{"type": "text", "text": "done"}], side=True),
+    ])
 
     # S4: a technical plan run, TECH-03, matched by its commit marker only.
     write(f"{p2}/s4.jsonl", [
@@ -156,6 +163,8 @@ def main():
         assert a1["model"] == "claude-sonnet-5" and a2["model"] == "claude-haiku"
         assert a1["tools"]["Read"] == 3 and a1["tools"]["Bash"] == 3
         assert a1["final_report"].startswith("FINAL REPORT")
+        assert agents["b1"]["final_report"].startswith("HANDBACK"), agents["b1"]["final_report"]
+        assert agents["b2"]["final_report"] == "done", agents["b2"]["final_report"]
         assert a1["duration_s"] == 88
 
         # errors and retries
@@ -185,6 +194,16 @@ def main():
 
         md = collect.render_md(d)
         assert "spec-creator" in md and "docs/b.md" in md
+
+        # main() writes UTF-8 whatever the platform encoding (cp1252 on Windows crashed on "≥").
+        out, argv = os.path.join(root, "out"), sys.argv
+        sys.argv = ["collect.py", "SPEC-07", "--root", root, "--glob", "*demo-app*", "--out", out]
+        try:
+            collect.main()
+        finally:
+            sys.argv = argv
+        with open(os.path.join(out, "digest.md"), encoding="utf-8") as f:
+            assert "HANDBACK report ≥ ok" in f.read()
 
     # missing projects / sessions must not crash
     with tempfile.TemporaryDirectory() as empty:
