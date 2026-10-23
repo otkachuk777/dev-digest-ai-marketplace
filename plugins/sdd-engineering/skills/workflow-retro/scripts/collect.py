@@ -21,7 +21,7 @@ PHASES = [("spec", {"spec-creator"}), ("plan", {"implementation-planner"}), ("im
 
 def load(path):
     out = []
-    with open(path, errors="replace") as f:
+    with open(path, encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
                 out.append(json.loads(line))
@@ -195,7 +195,7 @@ def select_sessions(root, arg, pattern):
 def parse_agent(path, session_id):
     aid = os.path.basename(path)[len("agent-"):-len(".jsonl")]
     meta_path = path[:-len(".jsonl")] + ".meta.json"
-    meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
+    meta = json.load(open(meta_path, encoding="utf-8")) if os.path.exists(meta_path) else {}
     lines = load(path)
     stamps = [m["timestamp"] for m in lines if m.get("timestamp")]
     cwd = next((m.get("cwd") for m in lines if m.get("cwd")), "")
@@ -203,13 +203,19 @@ def parse_agent(path, session_id):
     uses, results = tool_uses(lines), tool_results(lines)
 
     prompt = next((h for h in (human_text(m, True) for m in lines) if h), "")
-    final = ""
+    # The report is the last SubagentHandback message when the agent handed one back; otherwise the
+    # last assistant text (a short line after the handback is not the report).
+    final, handback = "", ""
     for m in lines:
         c = content(m)
         if m.get("type") == "assistant" and isinstance(c, list):
             txt = "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
             if txt.strip():
                 final = txt
+            for b in c:
+                if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "SubagentHandback":
+                    handback = (b.get("input") or {}).get("message", "") or handback
+    final = handback or final
 
     tools, errors, reads, bash, failed, retried = collections.Counter(), collections.Counter(), [], [], set(), []
     for b in uses:
@@ -430,10 +436,10 @@ def main():
     os.makedirs(out, exist_ok=True)
     for a_ in d["agents"]:
         a_.pop("reads"), a_.pop("bash")
-    with open(os.path.join(out, "digest.json"), "w") as f:
+    with open(os.path.join(out, "digest.json"), "w", encoding="utf-8") as f:
         json.dump(d, f, indent=1)
     md = render_md(d, a.excerpt)
-    with open(os.path.join(out, "digest.md"), "w") as f:
+    with open(os.path.join(out, "digest.md"), "w", encoding="utf-8") as f:
         f.write(md)
     T = d["totals"]
     print(f"{out}/digest.md ({len(md) // 4} tokens approx)\n{out}/digest.json\n"

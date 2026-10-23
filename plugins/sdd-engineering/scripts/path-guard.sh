@@ -71,6 +71,21 @@ FILE=$(resolve "$FILE")
 ROOT=$(cd -P "$ROOT" && pwd -P)
 case "$FILE" in "$ROOT"/*) REL=${FILE#"$ROOT"/};; *) deny "$FILE is outside the repository";; esac
 
+# A linked worktree of this same repository nested inside it (run-plan keeps them in
+# .claude/worktrees/<name>) is matched from its own root: its docs/ are documentation, its .claude/
+# is still agent configuration. A plain folder or a different repository keeps the outer root.
+common_dir() {
+  local c; c=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  (cd -P "$(to_posix "$c")" 2>/dev/null && pwd -P)
+}
+DIR=${FILE%/*}; while [ ! -d "$DIR" ] && [ "$DIR" != "$ROOT" ]; do DIR=${DIR%/*}; done
+if [ "$DIR" != "$ROOT" ] && WT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null); then
+  WT=$(cd -P "$(to_posix "$WT")" && pwd -P)
+  case "$WT" in
+    "$ROOT"/*) [ "$(common_dir "$DIR")" = "$(common_dir "$ROOT")" ] && REL=${FILE#"$WT"/};;
+  esac
+fi
+
 case "$PROFILE" in
   tests)
     case "$REL" in

@@ -85,6 +85,23 @@ check $SP "$REPO/specs/notes.md" deny
 check $SP "$REPO/specs/SPEC-1-short.md" deny
 check $SP "$REPO/src/app.ts" deny
 
+# a linked worktree nested in the session repo (run-plan: .claude/worktrees/<name>) is matched from
+# its own root, so its docs/ are documentation and its .claude/ is still agent configuration
+git -C "$REPO" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
+git -C "$REPO" worktree add -q "$REPO/.claude/worktrees/wt" -b wt 2>/dev/null
+WT="$REPO/.claude/worktrees/wt"
+check $D "$WT/docs/adr/0001-choice.md" allow
+check $D "$WT/backend/README.md" allow
+check $D "$WT/docs/plans/x.md" deny
+check $D "$WT/.claude/agents/x.md" deny
+check $D "$WT/CLAUDE.md" deny
+check $SP "$WT/specs/SPEC-01-login.md" allow
+mkdir -p "$REPO/.claude/worktrees/plain/docs"
+check $D "$REPO/.claude/worktrees/plain/docs/x.md" deny
+OTHER=$(mktemp -d); git -C "$OTHER" init -q
+check $D "$OTHER/docs/x.md" deny
+rm -rf "$OTHER"
+
 # a symlink inside the repository must not lead the agent outside it
 OUT=$(mktemp -d); ln -s "$OUT" "$REPO/escape"
 check $T "$REPO/escape/evil.test.ts" deny
