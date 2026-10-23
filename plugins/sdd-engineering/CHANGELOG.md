@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.2
+
+- `run-plan` Commits: a `chunk-<k>` commit body carries the implementer's Deviations and the next chunk's notes (≤10 lines), so a resumed session reads them from `git log` instead of a scratchpad that did not survive.
+- `run-plan` Build: every agent prompt ends with a "Return ≤25 lines" rule (status, per-id result, files, commands; detail in the scratchpad) to keep the orchestrator's share and peak context down.
+- `run-plan` review loop: a fix-mode prompt for UI code names the e2e specs the fix can affect and the e2e command; the implementer runs them before returning and no other agent uses the same port meanwhile.
+
 ## 1.5.1
 
 - `run-plan` "Where are we?" starts with `git worktree list` and runs `impl-status.sh` and all git commands from the matching worktree, so a resume from the main checkout no longer reports `blocked-spec`.
