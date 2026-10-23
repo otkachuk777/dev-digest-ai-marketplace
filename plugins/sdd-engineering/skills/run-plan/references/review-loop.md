@@ -40,7 +40,7 @@ Number findings by reviewer: `A<n>` architecture, `S<n>` security, `C<n>` code-r
 
 ### 3. Fix
 
-Group `fix` + `fix-along` by file into fix chunks (one module each). Per chunk an implementer in **fix mode** — `SendMessage` to the implementer that wrote the code if its context is still small, otherwise a fresh one:
+Group `fix` + `fix-along` by file into fix chunks (one module each). Per chunk an implementer in **fix mode** — `SendMessage` to the implementer that wrote the code if its context is still small, otherwise a fresh one. For UI code, the prompt names the e2e spec files the fix can affect and the repository's e2e command (with its port rules); the implementer runs them before returning, and no other agent uses the same port meanwhile (a review fix once passed every unit test and broke a racy e2e test that only the orchestrator's later full run caught). Prompt shape:
 
 ```
 Fix mode. Plan: <path>. Red tests: <red_sha, test-first only> (never edit the test-writer's tests).
