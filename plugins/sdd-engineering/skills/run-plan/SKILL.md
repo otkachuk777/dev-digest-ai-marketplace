@@ -35,7 +35,7 @@ You (the main session) are the orchestrator: subagents cannot ask the user or co
 
 ## Where are we? (resume)
 
-Run `"${CLAUDE_SKILL_DIR}"/scripts/impl-status.sh <arg>` → `phase=… spec=… status=… plan=… last=… review_round=…`. State lives only in artifacts: SPEC `Status` (technical plan: its `- Plan status:` line), the plan (`- Source:` line), commits `SDD(<ID>): <phase>` and the plan's `## Review log`. Plans are looked up in `docs/plans/` and `docs/cc-plans/` (override with `SDD_PLAN_DIRS`). Running `run-plan <ID>` in a fresh session continues where the last one stopped. After Build, and again after Review, check this session's context. If it is past ~250K, stop and tell the user to run `run-plan <ID>` in a fresh session; do not go on to the next phase here.
+First run `git worktree list` and look for a worktree that matches `<ID>` or the branch the resume note names. If one exists, run `impl-status.sh` and every git command from inside it (`git -C <worktree>`), never in the checkout the session started in, which may be the main one and would report `blocked-spec`. Then run `"${CLAUDE_SKILL_DIR}"/scripts/impl-status.sh <arg>` → `phase=… spec=… status=… plan=… last=… review_round=…`. State lives only in artifacts: SPEC `Status` (technical plan: its `- Plan status:` line), the plan (`- Source:` line), commits `SDD(<ID>): <phase>` and the plan's `## Review log`. Plans are looked up in `docs/plans/` and `docs/cc-plans/` (override with `SDD_PLAN_DIRS`). Running `run-plan <ID>` in a fresh session continues where the last one stopped. After Build, and again after Review, check this session's context. If it is past ~250K, stop and tell the user to run `run-plan <ID>` in a fresh session; do not go on to the next phase here.
 
 | phase | Do |
 |---|---|
@@ -61,6 +61,10 @@ Opus stays with spec-creator and implementation-planner, where a gap costs every
 
 Wherever this skill says `<default>`, use the repository's default branch: `git symbolic-ref --short refs/remotes/origin/HEAD` (strip `origin/`), else `main`, else `master`.
 
+## Git in a worktree
+
+The Bash tool may refuse `git` inside `.claude/worktrees/*`, and subagents have no PowerShell tool. Every agent prompt for a worktree session names the fallback: from Bash, `powershell.exe -NoProfile -Command "git -C <worktree> …"` (the main session uses its PowerShell tool).
+
 ## Commits
 
 Every phase ends with `git commit -m "SDD(<ID>): <phase>" -- <explicit paths>` (phases: `plan`, `skeleton`, `red-tests`, `chunk-<k>`, `gate`, `review-<n>`). Never `git add -A` / `git add <dir>` while an agent runs: parallel work gets swallowed into the wrong commit. Follow the session's attribution rule for commit trailers. Markers are squashed away at G3. A `review-<n>` commit lists the fixed finding ids with one-line titles in its body, and the plan's `## Review log` carries the same list — plan-verifier pass 2 reads it instead of inferring the mapping from the diff.
@@ -81,6 +85,8 @@ Every phase ends with `git commit -m "SDD(<ID>): <phase>" -- <explicit paths>` (
 - A Deviation that changes behavior → ask the user; a plan that cannot be executed → stop and suggest re-running implementation-planner.
 
 ## Phase 2 — Gate
+
+Before launching plan-verifier — and on any resume — re-run the cheap toolchain probes of Phase 0 step 4 (`docker info`, `gcc --version` with the resolved PATH, the plan's other Verify tools). A tool that is down: start it or tell the user; never launch the verifier into a known-down dependency, since every item that needs it comes back "not verifiable" (a laptop restart does this).
 
 0. The change touches UI → the main session runs the app from the worktree on spare ports (use the repository's documented dev command with ports not used by the user's dev server; never run a production build over a running dev server) and clicks through every new screen and state at 1024 px (check overflow: `scrollWidth > clientWidth`), and screenshots each screen next to the design reference the spec names (`docs/designs/extracted/<screen>`, the design file screen or the user's image). List visual gaps — layout, component kinds (cards, rows, badges), colours, header actions, navigation chrome — not just behaviour. Layout, design or behavior gaps → implementer fix mode (with the design reference path) before plan-verifier; commit `chunk-<k>-fix`.
 

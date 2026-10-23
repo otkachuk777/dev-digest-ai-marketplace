@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1
+
+- `run-plan` "Where are we?" starts with `git worktree list` and runs `impl-status.sh` and all git commands from the matching worktree, so a resume from the main checkout no longer reports `blocked-spec`.
+- `run-plan` Gate re-runs the cheap toolchain probes (`docker info`, `gcc --version` with the resolved PATH) before plan-verifier, and on any resume, instead of launching the verifier into a stopped dependency.
+- `run-plan` "Git in a worktree": agent prompts name the `powershell.exe -NoProfile -Command "git -C <worktree> …"` fallback, since subagents have no PowerShell tool.
+
 ## 1.5.0
 
 - `run-plan` model table for the Claude 5.5 generation: security-reviewer round 1 runs on sonnet with effort `high` instead of opus; every reviewer in re-review rounds, plan-verifier `pass: 2` and doc-writer run on haiku. implementer, test-writer, plan-verifier `pass: 1` and round-1 architecture and code review stay on sonnet. Opus stays with spec-creator and implementation-planner.
