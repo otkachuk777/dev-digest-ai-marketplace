@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- `security-reviewer` runs on sonnet with effort `high` instead of opus.
+
 ## 1.1.1
 
 - `path-guard.sh` matches a file in a linked worktree of the same repository that is nested inside it (run-plan keeps them in `.claude/worktrees/<name>`) from the worktree's own root. `doc-writer` can write that worktree's `docs/**` and READMEs again; its `.claude/`, specs, plan archives and agent instruction files stay denied. A plain folder or another repository keeps the outer root.

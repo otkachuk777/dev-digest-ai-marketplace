@@ -8,10 +8,10 @@ Goal: zero blocking findings in at most 3 rounds, without re-reviewing code that
 
 | Round | Who | Model | Scope | Mode |
 |---|---|---|---|---|
-| 1 | architecture-reviewer ∥ security-reviewer ∥ code-reviewer — one message | sonnet · **opus** · sonnet | whole change: `$(git merge-base origin/<default> HEAD)..HEAD` | normal; pass the SPEC to security-reviewer (Untrusted inputs) |
-| ≥ 2 | only reviewers with `open` findings; **plus** security-reviewer when the delta touches a trust boundary (request handlers and routes, platform or auth code, adapters for external systems, prompt assembly for model calls, MCP or tool inputs) | sonnet (all) | delta `<review-(n-1) commit>..HEAD` | **re-review**: prior findings list + delta |
+| 1 | architecture-reviewer ∥ security-reviewer ∥ code-reviewer — one message | sonnet · sonnet, effort **high** · sonnet | whole change: `$(git merge-base origin/<default> HEAD)..HEAD` | normal; pass the SPEC to security-reviewer (Untrusted inputs) |
+| ≥ 2 | only reviewers with `open` findings; **plus** security-reviewer when the delta touches a trust boundary (request handlers and routes, platform or auth code, adapters for external systems, prompt assembly for model calls, MCP or tool inputs) | haiku (all) | delta `<review-(n-1) commit>..HEAD` | **re-review**: prior findings list + delta |
 
-Opus only where a miss is most expensive: tracing new source → sink paths in round 1. Checking whether a known finding is closed is a narrow task — sonnet.
+High effort only where a miss is most expensive: tracing new source → sink paths in round 1. Checking whether a known finding is closed is a narrow task — haiku.
 
 Prompt for a re-review (architecture-reviewer / security-reviewer / code-reviewer):
 

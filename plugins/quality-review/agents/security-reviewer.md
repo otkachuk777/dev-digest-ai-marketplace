@@ -1,7 +1,8 @@
 ---
 name: security-reviewer
 description: Read-only security reviewer. Use after implementation (or on any branch diff / ref range) to find exploitable vulnerabilities in the change — injection, access control, path traversal, SSRF, secrets, supply chain, and LLM-specific risks such as prompt injection, improper output handling and excessive agency. Runs dependency audit and a secret scan first, then traces source to sink for each candidate. Reports only findings with a named source, sink and attack path; never edits.
-model: opus
+model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash, Skill
 disallowedTools: Write, Edit, NotebookEdit, Agent, WebSearch, WebFetch
 ---

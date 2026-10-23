@@ -45,13 +45,17 @@ Run `"${CLAUDE_SKILL_DIR}"/scripts/impl-status.sh <arg>` → `phase=… spec=…
 
 ## Models
 
-Pass `model` in the Agent call; it overrides the agent's frontmatter.
+Pass `model` (and `effort` where the table names one) in the Agent call; it overrides the agent's frontmatter.
 
 | Agent | Model |
 |---|---|
-| implementer, plan-verifier, architecture-reviewer, code-reviewer | sonnet |
-| security-reviewer | opus in review round 1, sonnet in re-review rounds |
-| test-writer (test-first plans only), doc-writer (`--docs`) | sonnet |
+| implementer, test-writer (test-first plans only), plan-verifier `pass: 1` | sonnet |
+| architecture-reviewer, code-reviewer — review round 1 | sonnet |
+| security-reviewer — review round 1 | sonnet, effort `high` |
+| every reviewer in re-review rounds (≥ 2), plan-verifier `pass: 2` | haiku |
+| doc-writer (`--docs`) | haiku |
+
+Opus stays with spec-creator and implementation-planner, where a gap costs every later phase. Narrow checks against a known list (prior findings, the delta's plan items) and documentation checked against the code run on haiku.
 
 ## Default branch
 

@@ -1,7 +1,7 @@
 {
   "name": "research-tools",
   "displayName": "Research Tools",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Read-only research and option-comparison agents with a Bash guard that keeps them from changing anything.",
   "author": {
     "name": "AI Engineering"
