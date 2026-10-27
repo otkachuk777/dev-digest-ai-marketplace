@@ -98,7 +98,7 @@ Discover them in the repository (project instructions, architecture docs, task r
   - a fresh worktree has no `node_modules` (or `.venv`): the group's first step installs dependencies with the module's own package manager, or its Verify commands cannot run; Go modules share the module cache and need no install step;
   - the main session merges and commits with explicit paths (no `git add -A` while a subagent runs).
 - Parallel only when, after Group 0, at least two groups own three or more files each — every worktree pays a full install and a cold implementer. Otherwise say parallel buys nothing and plan single, noting it under "Execution mode".
-- **Chunks (both modes).** One implementer's context grows with every turn; a whole plan in one agent ran 200–400 turns at 200–300k context. Split each group's steps into chunks of 2–3 steps (one cohesive area each); the caller gives every chunk to a fresh implementer, in order. Step 0 Skeleton is its own chunk.
+- **Chunks (both modes).** One implementer's context grows with every turn; a whole plan in one agent ran 200–400 turns at 200–300k context. Split each group's steps into chunks of 2–3 steps (one cohesive area each); the caller gives every chunk to a fresh implementer, in order. A step that edits more than about 8 non-test files or crosses 3 packages (for example scan + store + refresh, or snapshot + httpapi + search + schema) gets a chunk of its own: two such steps in one chunk ran 45–48 turns and 5.5M processed tokens, about 3× the median chunk. Step 0 Skeleton is its own chunk.
 
 ## Step 5 — Test mode
 
@@ -202,7 +202,7 @@ Unmapped skills: <name — why used> | none
 - Every step has Covers, Files, Skills, Change, Verify, Done when.
 - Every `AC-N`, `EC-N` and `NFR-N` is covered by a step's "Done when" or the Test plan, or listed under Out of scope with a reason.
 - No step adds behavior the requirements do not ask for; nothing was written to a spec.
-- Execution mode is set; in parallel mode every file has one owning group and Group 0 holds the shared seams; every group is split into chunks of 2–3 steps.
+- Execution mode is set; in parallel mode every file has one owning group and Group 0 holds the shared seams; every group is split into chunks of 2–3 steps, and a step that edits more than about 8 non-test files or crosses 3 packages has a chunk of its own.
 - `## Test mode` set; test-first → Test seams filled and Step 0 Skeleton present; every test has one owner.
 - Every brainstorm report used is summarised under Decisions.
 - Every skill named in the plan was read in its current version during this run.

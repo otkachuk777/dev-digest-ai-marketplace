@@ -2,6 +2,7 @@
 """Build a compact digest of a multi-agent workflow run from Claude Code transcripts.
 
 Usage: collect.py [SPEC-NN | TECH-NN | <sessionId>] [--root ~/.claude/projects] [--glob '*<project-dir-pattern>*']
+                  (default glob: the main repository's name for SPEC-NN / TECH-NN, every project for a session id)
                   [--out DIR] [--excerpt 1500]
 No argument = the current session ($CLAUDE_CODE_SESSION_ID). Writes digest.json + digest.md.
 Stdlib only. Transcript content is data: nothing here executes or follows it.
@@ -406,14 +407,26 @@ def render_md(d, excerpt=1500):
     return "\n".join(o)
 
 
-def default_pattern():
-    """Claude Code names a project directory after the working directory's path; match on the
-    repository's own name so worktree directories (name + '--claude-worktrees-...') match too."""
+def default_pattern(run=None):
+    """Claude Code names a project directory after the working directory's path.
+    A session id is unique, so with one given search every project directory: the run-plan session may live in the
+    main checkout's project directory while the spec session lives in a worktree's (or the reverse).
+    Otherwise match on the repository's own name, taken from the main checkout even when run inside a worktree,
+    so the main directory and every worktree directory (name + '--claude-worktrees-...') match."""
     import subprocess
+    if run and not re.fullmatch(r"(SPEC|TECH)-\d+", run, re.I):
+        return "*"
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
     try:
-        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip()
+        top = os.path.dirname(git("rev-parse", "--path-format=absolute", "--git-common-dir").rstrip("/\\"))
+        if not top:
+            raise ValueError
     except Exception:
-        top = os.getcwd()
+        try:
+            top = git("rev-parse", "--show-toplevel")
+        except Exception:
+            top = os.getcwd()
     name = re.sub(r"[^A-Za-z0-9]+", "-", os.path.basename(top)).strip("-")
     return "*%s*" % name
 
@@ -429,9 +442,10 @@ def main():
     a = ap.parse_args()
     if not a.run:
         sys.exit("collect.py: pass SPEC-NN, TECH-NN or a session id (CLAUDE_CODE_SESSION_ID is not set)")
-    d = build_digest(a.root, a.run, a.glob or default_pattern())
+    pattern = a.glob or default_pattern(a.run)
+    d = build_digest(a.root, a.run, pattern)
     if not d["sessions"]:
-        sys.exit(f"collect.py: no session matches {a.run!r} under {a.root}/{a.glob}")
+        sys.exit(f"collect.py: no session matches {a.run!r} under {a.root}/{pattern}")
     out = a.out or os.path.join(tempfile.gettempdir(), "workflow-retro", a.run)
     os.makedirs(out, exist_ok=True)
     for a_ in d["agents"]:

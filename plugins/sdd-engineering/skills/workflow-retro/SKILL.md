@@ -18,7 +18,7 @@ python3 $S/collect.py $ARGUMENTS --out "$TMPDIR/workflow-retro/<run>"
 
 - `SPEC-NN` (or `TECH-NN` for a technical plan) → every session of this repository (all worktree slugs) that references it: a human prompt, a prompt to an SDD agent, or an `SDD(SPEC-NN)` / `SDD(TECH-NN)` commit. Check `matched_by` in `digest.json` if a session looks foreign.
 - `<sessionId>` → that session. No argument → the current session (`$CLAUDE_CODE_SESSION_ID`).
-- The project directory is matched by the repository's name; pass `--glob '*<pattern>*'` to `collect.py` to match another one.
+- `SPEC-NN` / `TECH-NN`: the project directories are matched by the main repository's name (the main checkout and all its worktrees, also when you run it from a worktree). A `<sessionId>` is searched in every project directory. Pass `--glob '*<pattern>*'` to `collect.py` to match another set.
 - Self-check: `python3 $S/collect.test.py`.
 
 Read `digest.md` (a few K tokens). **Do not read raw transcripts wholesale** (each is 0.2–5 MB). When a signal needs explaining, open the one subagent file (`~/.claude/projects/<slug>/<session>/subagents/agent-<id>.jsonl`) with `grep -n` / `sed -n` around the spot.

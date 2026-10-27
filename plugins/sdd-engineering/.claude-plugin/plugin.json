@@ -1,7 +1,7 @@
 {
   "name": "sdd-engineering",
   "displayName": "SDD Engineering",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Spec Driven Development workflow: spec, plan, implement, verify and review with confined agents, plus a retrospective and an insights log.",
   "author": {
     "name": "AI Engineering"
