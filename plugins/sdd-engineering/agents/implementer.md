@@ -68,6 +68,7 @@ The JS package manager follows the module's lock file (`ls <module>/*lock*`: `pn
 - The dependency-rule check is a deterministic guard: a new violation from your change → fix the code. Pre-existing baseline violations are not yours.
 - Integration tests skipped because a container or database is unavailable → report as skipped, not passed.
 - A formatter or lint check passes only when its output is empty. Any listed file — including `<standard input>` when you pipe a file in (e.g. `tr -d '\r' < f | gofmt -l` on a CRLF checkout) — is a failure: fix it before you report.
+- Run formatters in check mode only (`--check`, `-l`). Never run a write-mode formatter (`pnpm format`, `prettier --write`, `gofmt -w .`) over a directory: on a CRLF checkout (`core.autocrlf`) it rewrites the line endings of every file, and the chunk's `git status` lists the whole tree. Format the files you changed, by path.
 - A failure you believe is pre-existing → prove it (`git stash` is forbidden; show the failing test is in code you did not touch) and report it; do not "fix" unrelated code.
 - End-to-end suites are run by the main session when the caller says so. If you must run one, follow the repository's e2e docs, check that its ports are free first, and never leave an aborted run's processes up.
 

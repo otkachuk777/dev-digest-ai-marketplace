@@ -60,6 +60,34 @@ def test_default_pattern():
             os.chdir(old)
 
 
+def test_default_pattern_from_a_worktree():
+    # A worktree's top level carries the worktree's name; the pattern must still use the main repository's name,
+    # or the run-plan session (stored under the main checkout's project directory) is never found.
+    import subprocess, tempfile
+    with tempfile.TemporaryDirectory() as t:
+        repo = os.path.join(t, "demo-app")
+        wt = os.path.join(t, "demo-app-wt", "spec-09-feature")
+        os.makedirs(repo)
+        git = lambda *a, cwd=repo: subprocess.run(["git", "-c", "user.email=a@b", "-c", "user.name=t", *a],
+                                                  cwd=cwd, check=True, capture_output=True)
+        git("init", "-q")
+        git("commit", "-q", "--allow-empty", "-m", "init")
+        git("worktree", "add", "-q", wt, "-b", "spec-09")
+        old = os.getcwd()
+        os.chdir(wt)
+        try:
+            assert collect.default_pattern() == "*demo-app*", collect.default_pattern()
+            assert collect.default_pattern("SPEC-09") == "*demo-app*", collect.default_pattern("SPEC-09")
+        finally:
+            os.chdir(old)
+
+
+def test_default_pattern_for_a_session_id():
+    # A session id is unique: search every project directory, whatever the working directory is.
+    assert collect.default_pattern("e66a0456-4fdc-4784-a135-b21b1bb73609") == "*"
+    assert collect.default_pattern("s3") == "*"
+
+
 def build(root):
     p1 = os.path.join(root, "-repo-demo-app")
     p2 = os.path.join(root, "-repo-demo-app--claude-worktrees-x")
@@ -210,6 +238,8 @@ def main():
         assert collect.build_digest(empty, "SPEC-99", "*demo-app*")["sessions"] == []
 
     test_default_pattern()
+    test_default_pattern_from_a_worktree()
+    test_default_pattern_for_a_session_id()
     print("collect.test.py: all passed")
 
 

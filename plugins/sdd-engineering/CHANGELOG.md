@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.3
+
+- `implementer`: run formatters in check mode only; a write-mode formatter (`pnpm format`) on a CRLF checkout rewrote the line endings of every file in `web/` (SPEC-04 retro P1).
+- `implementation-planner`: a step that edits more than about 8 non-test files or crosses 3 packages gets a chunk of its own; two such steps in one chunk ran 45-48 turns and 5.5M tokens (SPEC-04 retro P3).
+- `run-plan` Gate: run the toolchain probes as the last call before the plan-verifier launch, in the same turn; a probe from before a long wait is stale (SPEC-04 retro P5).
+- `workflow-retro` `collect.py`: a session id is searched in every project directory, and `SPEC-NN` / `TECH-NN` match on the main repository's name even when run from a worktree. Before, the run-plan session stored under the main checkout's project directory was missed from a worktree, so the digest reported only the spec and plan sessions (SPEC-04 retro P6).
+
 ## 1.5.2
 
 - `run-plan` Commits: a `chunk-<k>` commit body carries the implementer's Deviations and the next chunk's notes (≤10 lines), so a resumed session reads them from `git log` instead of a scratchpad that did not survive.
