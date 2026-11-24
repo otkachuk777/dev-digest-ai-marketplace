@@ -116,7 +116,7 @@ Rules:
 ## Placement & numbering
 
 - One module → `<module>/specs/`. Two or more modules → top-level `specs/` (list the modules in *Problem and user*).
-- ID: `grep -rhoE --include='SPEC-*.md' 'Spec ID: SPEC-[0-9]+' specs */specs` → max + 1, zero-padded to 2 digits; none → `SPEC-01`. Computed in Round 1 for the report and **again right before writing**; also `ls` the target folder and take the next free number if `SPEC-NN-*` exists.
+- ID: the max of (a) `grep -rhoE --include='SPEC-*.md' 'Spec ID: SPEC-[0-9]+' specs */specs` in this tree, (b) the same grep in every path of `git worktree list --porcelain`, and (c) the `SPEC-NN` in `git log --all --format= --name-only -- '*specs/SPEC-*'` → max + 1, zero-padded to 2 digits; none → `SPEC-01`. A parallel session in another worktree or branch may already hold the next number; name any number taken only there in the report. Computed in Round 1 for the report and **again right before writing**; also `ls` the target folder and take the next free number if `SPEC-NN-*` exists.
 - File name `SPEC-NN-<kebab-slug>.md`; the number equals `Spec ID`. New specs start as `Status: draft`.
 - `Status: approved` is set **only** when the caller passes the user's explicit approval given in chat (quote it in the final message); never infer approval from answered questions or a clean lint. `implemented` is not yours: the main session sets it after plan-verifier. `Supersedes` and `Superseded by` change only when the caller asks. When a new spec replaces an older decision: `Supersedes:` in the new spec and, if the caller agrees, `Superseded by:` in the old one — both directions, so a reader of the old spec finds the new one.
 
@@ -127,7 +127,7 @@ Run every source through this; each hit becomes a G/C/M/U item.
 - **Interaction:** keyboard-only path and focus order, a11y (labels, contrast, screen-reader text — WCAG 2.2 AA), i18n (all copy in the namespace, pluralisation, long translations), responsive widths, undo/confirmation for destructive actions, feedback after every action, consistency with the existing design-system patterns.
 - **Data:** limits and pagination, sorting/filter persistence, concurrency (two runs, double click, re-run while running), idempotency, time zones and relative dates, deletion/archival.
 - **Cross-module:** does a contract already exist or is a new/changed shape needed (and are there duplicated copies that must change together); which module owns the data; the path between client, server and any other module, and whether the architecture allows it; external-API and model-provider failure, timeout and rate-limit behavior and what the user sees; model cost per action.
-- **Non-functional:** latency the user will notice, payload/list size limits, model tokens or cost per run, what must be logged — each becomes an NFR with a number, or a question when the number is a product decision.
+- **Non-functional:** latency the user will notice, payload/list size limits, model tokens or cost per run, what must be logged — each becomes an NFR with a number, or a question when the number is a product decision. A size, time or viewport budget is checked against the ACs at their largest data; a clash is a question in the Discovery report.
 - **Security:** every untrusted input's sink (render, prompt, shell, path, SQL, URL).
 - **Consistency:** does the design contradict existing specs, insights entries, UI patterns, the domain terms of the architecture docs or the current code? Report it; do not silently pick one.
 
@@ -139,7 +139,7 @@ Run every source through this; each hit becomes a G/C/M/U item.
 2. **Complete:** every G/C/M/U item from all rounds ended as an AC, EC, NFR, Untrusted-inputs line, Non-goal or OQ — none silently dropped.
 3. **Testable:** each AC names an observable outcome a test can assert; its `[verify:]` layer is plausible (UI behavior → unit/e2e, DB state → it, visual only → manual).
 4. **Traceable:** each US has at least one AC; each AC serves a US; each diagram branch has its AC/EC label; Traceability matches the sections.
-5. **Measurable NFRs:** every NFR has a number and a verify layer; latency, limits, cost, a11y and i18n were considered (a deliberate "not applicable" is fine).
+5. **Measurable NFRs:** every NFR has a number and a verify layer; latency, limits, cost, a11y and i18n were considered (a deliberate "not applicable" is fine). Every NFR with a size, time or viewport budget is checked against the ACs at their largest stated data (max values, all expanded, longest text): an AC that can break the budget (e.g. "all groups expanded, 30 items" vs "fits the first screen") is a question for the user, not a conflict left for the implementer.
 6. **Interfaces:** every new or changed interface has a contract table; the Communication path is allowed by the architecture; `changed` contracts state breaking / non-breaking.
 7. **Safe:** every untrusted input in the provenance table has a handling statement that references an AC/NFR.
 8. **What, not how:** no file names, classes, libraries, table layouts or schema code; domain terms match the architecture docs.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0
+
+- `implementer`: create and change files only with `Write` / `Edit`, never Bash heredocs, `python -` or `sed -i`; if `Write` / `Edit` is refused, stop and report. Bash heredocs failed with `unexpected EOF`, a Python heredoc turned `\b` into a backspace in a test regex, and Bash writes skip the format hooks (SPEC-06 retro P1).
+- `implementer`: the inline Fail-proof shows a red run per step before the step's first production-file write; production code written first is a Deviation (SPEC-06 retro P2).
+- `spec-creator`: the next SPEC number is the max across this tree, every `git worktree list` path and `git log --all` spec files, so parallel sessions no longer pick the same number (SPEC-06 retro P3).
+- `spec-creator`: NFRs with a size, time or viewport budget are checked against the ACs at their largest data (all expanded, max values) in discovery and self-check item 5; a clash is a question for the user (SPEC-06 retro P4).
+- `implementation-planner`: the plan is always written to `~/.claude/plans/`; a repository path from the caller becomes a `copy to: <repo path>` line in the report, since the path guard blocks repo writes (SPEC-06 retro P7).
+
 ## 1.5.3
 
 - `implementer`: run formatters in check mode only; a write-mode formatter (`pnpm format`) on a CRLF checkout rewrote the line endings of every file in `web/` (SPEC-04 retro P1).

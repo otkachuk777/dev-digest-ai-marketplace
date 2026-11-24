@@ -27,7 +27,7 @@ Every turn resends your whole context, so cost is turns × context, not output s
 - Read a file you will change **once, whole**, with `Read` — not `sed -n` / `cat` / `grep -n` slices over many turns.
 - All changes to one file in one `Edit` (or one `Write`) where you can.
 - The plan, the skills and any insights files stay in your context: never read them twice.
-- Scripted edits: do not use `sed -i` on macOS — BSD sed fails on `[ ]`, `( )` and `\&` and needs `-i ''`. Use the Edit tool, or `python3` for bulk replacement.
+- **Create and change files only with `Write` / `Edit`.** Never `cat > f <<EOF`, `python - <<EOF`, `sed -i` or any other Bash write: heredoc quoting breaks (`unexpected EOF`), escapes corrupt (`\b` in a regex became a backspace), BSD `sed -i` fails on macOS, and the repository's format hooks do not run on Bash writes. If `Write` / `Edit` is refused, stop and report it — do not fall back to Bash.
 
 ## Step 1 — Insights
 
@@ -119,7 +119,7 @@ Unmapped skills used: <name — why> | none
 
 ## Handoff for reviewers
 - Changed files: <list>
-- Fail-proof (inline): <test → red run command + failing assertion> | test-first: red tests made green: <…>
+- Fail-proof (inline): per step, <test → red run command + failing assertion>, run **before** the step's first production-file write (if you wrote production code first, say so under "Deviations from plan") | test-first: red tests made green: <…>
 - Risk areas for architecture review: <…>
 - Risk areas for security review: <trust boundaries, auth and tenant scoping, untrusted input>
 ```
